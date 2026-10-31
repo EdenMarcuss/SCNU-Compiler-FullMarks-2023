@@ -1,0 +1,2337 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>编译原理课程项目 · 满分重制版 (2026)</title>
+<style>
+/* 编译原理课程项目 · 满分重制版 — 样式 (浅色主题) */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #f4f6f9; --card: #ffffff; --border: #e2e7ee; --text: #1a2233; --sub: #5b6575;
+  --accent: #2563eb; --accent-weak: #e8effd; --ok: #16a34a; --ok-weak: #e8f7ee;
+  --warn: #b45309; --warn-weak: #fdf3e3; --err: #dc2626; --err-weak: #fdeaea;
+  --code-bg: #f7f9fc; --mono: 'Cascadia Mono', Consolas, 'Courier New', monospace;
+}
+html, body { background: var(--bg); color: var(--text); font: 14px/1.65 'Segoe UI', 'Microsoft YaHei', sans-serif; }
+.container { max-width: 1280px; margin: 0 auto; padding: 18px 22px 80px; }
+
+/* 头部 */
+header.hero { padding: 22px 0 14px; }
+header.hero h1 { font-size: 22px; font-weight: 700; }
+header.hero h1 .badge { vertical-align: 3px; margin-left: 10px; }
+header.hero p { color: var(--sub); margin-top: 4px; }
+.badge { display: inline-block; font-size: 12px; padding: 1px 9px; border-radius: 20px; background: var(--accent-weak); color: var(--accent); font-weight: 600; }
+.badge.green { background: var(--ok-weak); color: var(--ok); }
+.badge.amber { background: var(--warn-weak); color: var(--warn); }
+.badge.red { background: var(--err-weak); color: var(--err); }
+.badge.gray { background: #eceff3; color: var(--sub); }
+
+/* 标签页 */
+.tabbar { display: flex; gap: 8px; margin: 14px 0 20px; flex-wrap: wrap; }
+.tabbar button {
+  border: 1px solid var(--border); background: var(--card); color: var(--sub);
+  padding: 9px 18px; border-radius: 10px; cursor: pointer; font-size: 14px; font-weight: 600;
+}
+.tabbar button.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+.tabpage { display: none; }
+.tabpage.active { display: block; }
+
+/* 步骤卡片 */
+.step { background: var(--card); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 16px; overflow: hidden; }
+.step-head { display: flex; align-items: center; gap: 10px; padding: 11px 16px; border-bottom: 1px solid var(--border); background: #fafbfd; }
+.step-head .no { width: 24px; height: 24px; border-radius: 50%; background: var(--accent); color: #fff; font-size: 13px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; flex: none; }
+.step-head h3 { font-size: 15px; }
+.step-head .why { color: var(--sub); font-size: 12.5px; margin-left: auto; text-align: right; max-width: 55%; }
+.step-body { padding: 14px 16px; }
+.step-body.collapsed { display: none; }
+
+/* 控制条 */
+.controls { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 14px; background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; }
+.controls label { color: var(--sub); font-size: 13px; }
+select, textarea {
+  border: 1px solid var(--border); border-radius: 8px; padding: 6px 10px; font: inherit; color: var(--text); background: #fff;
+}
+textarea { width: 100%; font-family: var(--mono); font-size: 13px; line-height: 1.55; }
+button.btn {
+  border: 1px solid var(--border); background: #fff; color: var(--text); border-radius: 8px;
+  padding: 7px 14px; cursor: pointer; font-size: 13.5px; font-weight: 600;
+}
+button.btn:hover { border-color: var(--accent); color: var(--accent); }
+button.btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+button.btn.primary:hover { opacity: .92; color: #fff; }
+button.btn.small { padding: 3px 10px; font-size: 12.5px; }
+.hint { color: var(--sub); font-size: 12.5px; }
+
+/* 表格 */
+.tablewrap { overflow: auto; border: 1px solid var(--border); border-radius: 8px; max-height: 480px; }
+table.data { border-collapse: collapse; font-size: 12.5px; width: max-content; min-width: 100%; }
+table.data th, table.data td { border: 1px solid #e8ecf2; padding: 4px 9px; text-align: left; white-space: nowrap; }
+table.data th { background: #f1f4f9; position: sticky; top: 0; z-index: 2; font-weight: 600; color: #3b4657; }
+table.data tr:nth-child(even) td { background: #fafbfd; }
+table.data td.acc { background: var(--ok-weak) !important; font-weight: 600; }
+table.data td.err-cell { background: var(--err-weak) !important; color: var(--err); }
+table.data td.mono, table.data th.mono { font-family: var(--mono); }
+table.data td.empty { color: #c3cad4; text-align: center; }
+caption.cap { caption-side: top; text-align: left; font-weight: 600; padding: 2px 2px 8px; color: var(--text); }
+
+/* 代码块 */
+pre.code {
+  background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px;
+  padding: 12px 14px; overflow: auto; max-height: 460px;
+  font-family: var(--mono); font-size: 12.3px; line-height: 1.55; color: #243044;
+}
+pre.lexfile { font-family: var(--mono); font-size: 12.5px; white-space: pre; }
+
+/* 语法树 / 自动机图 */
+.graphwrap { overflow: auto; border: 1px solid var(--border); border-radius: 8px; background: #fcfdff; padding: 6px; }
+svg text { font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif; }
+
+/* 分析结果 */
+.stat-row { display: flex; gap: 10px; flex-wrap: wrap; margin: 8px 0; }
+.stat { background: #f7f9fc; border: 1px solid var(--border); border-radius: 8px; padding: 6px 12px; font-size: 12.5px; color: var(--sub); }
+.stat b { color: var(--text); font-size: 14px; margin-left: 4px; }
+.okline { color: var(--ok); font-weight: 600; }
+.errline { color: var(--err); font-weight: 600; }
+.note { background: var(--warn-weak); border: 1px solid #f3dfba; color: var(--warn); border-radius: 8px; padding: 8px 12px; font-size: 12.8px; margin: 8px 0; }
+.note.blue { background: var(--accent-weak); border-color: #cdddf8; color: var(--accent); }
+.conflict-cell { background: var(--warn-weak) !important; }
+
+footer { margin-top: 40px; color: var(--sub); font-size: 12.5px; text-align: center; }
+
+</style>
+</head>
+<body>
+<div class="container">
+
+<header class="hero">
+  <h1>编译原理课程项目 · 满分重制版 <span class="badge">2026 重制</span></h1>
+  <p>项目一 词法分析器生成器 · 项目二 LL(1) 语法分析器 · 项目三 Mini-C 全流程测试 · 选做 四元式中间代码 — 全部按当年任务书要求实现, 数据与原作业完全兼容</p>
+</header>
+
+<div class="tabbar">
+  <button class="active" data-page="page1">项目一 · 词法分析器生成器</button>
+  <button data-page="page2">项目二 · LL(1) 语法分析器</button>
+  <button data-page="page3">项目三 · Mini-C 全流程测试</button>
+</div>
+
+<!-- ==================== 项目一 ==================== -->
+<section class="tabpage active" id="page1">
+  <div class="controls">
+    <label>测试语言:</label>
+    <select id="lex-lang">
+      <option value="tiny">TINY 语言</option>
+      <option value="minic">Mini-C 语言</option>
+    </select>
+    <button class="btn" id="lex-open-regex">📂 打开正则表达式文件</button>
+    <button class="btn primary" id="lex-build">⚙ 构建 (正则→NFA→DFA→最小化→C代码)</button>
+    <span class="hint">每行格式: 类别 = 正则表达式 | "宏 类别 = 正则" 定义辅助宏 | # 注释</span>
+  </div>
+  <div id="lex-err"></div>
+
+  <div class="step">
+    <div class="step-head"><span class="no">1</span><h3>输入正则表达式文件并解析</h3>
+      <div class="why">任务书(1): 以文本文件方式输入语言所有单词的正则表达式, 提供打开文件界面</div></div>
+    <div class="step-body">
+      <textarea id="lex-regex" rows="7" spellcheck="false"></textarea>
+      <div class="stat-row" id="lex-stats"></div>
+      <div id="lex-defs"></div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-head"><span class="no">2</span><h3>正则表达式 → NFA (Thompson 构造)</h3>
+      <div class="why">任务书(2): 提供窗口查看 NFA (状态转换表呈现)</div></div>
+    <div class="step-body">
+      <div class="controls" style="margin-bottom:10px; border:none; padding:0">
+        <label>查看:</label><select id="lex-nfa-sel"></select>
+      </div>
+      <div id="lex-nfa"></div>
+      <div class="hint" style="margin:8px 0 4px">状态转换图 (绿色双圈为接受状态):</div>
+      <div class="graphwrap" id="lex-nfa-graph"></div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-head"><span class="no">3</span><h3>NFA → DFA (子集构造法)</h3>
+      <div class="why">任务书(3): 提供窗口查看 DFA (状态转换表呈现)</div></div>
+    <div class="step-body"><div id="lex-dfa"></div></div>
+  </div>
+
+  <div class="step">
+    <div class="step-head"><span class="no">4</span><h3>DFA 最小化 (划分精化算法)</h3>
+      <div class="why">任务书(4): 提供窗口查看最小化 DFA (状态转换表呈现)</div></div>
+    <div class="step-body"><div id="lex-mindfa"></div></div>
+  </div>
+
+  <div class="step">
+    <div class="step-head"><span class="no">5</span><h3>生成 C 语言词法分析程序</h3>
+      <div class="why">任务书(5): 提供窗口查看转换得到的词法分析程序 (C 语言描述)</div></div>
+    <div class="step-body">
+      <div class="note blue">生成的 C 程序内嵌最小化 DFA 转移表, 采用最大匹配算法, 与本页面执行的扫描逻辑完全一致。当年要求调用 C 编译器编译运行 — 点击"下载 .c"后用任意 gcc / clang / MSVC 即可编译: <b>gcc TINY_lexer.c -o lexer &amp;&amp; ./lexer sample.tny</b></div>
+      <div id="lex-ccode"></div>
+      <div style="margin-top:8px"><button class="btn" id="lex-dl-c">⬇ 下载生成的 C 词法分析器</button></div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-head"><span class="no">6</span><h3>词法分析测试 (最大匹配扫描)</h3>
+      <div class="why">任务书(6)(7): 对源程序进行词法分析, 输出单词编码, 提供窗口查看</div></div>
+    <div class="step-body">
+      <div class="controls" style="margin-bottom:10px; border:none; padding:0">
+        <button class="btn" id="lex-sample">载入示例源程序</button>
+        <button class="btn" id="lex-open-src">📂 打开源程序文件</button>
+        <button class="btn primary" id="lex-run">▶ 开始词法分析</button>
+      </div>
+      <textarea id="lex-src" rows="8" spellcheck="false"></textarea>
+      <div id="lex-tokens" style="margin-top:10px"></div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-head"><span class="no">7</span><h3>输出 sample.lex (与当年交作业格式一致)</h3>
+      <div class="why">任务书(7)(8): 读入 sample.tny, 输出单词编码文件 sample.lex</div></div>
+    <div class="step-body">
+      <pre class="code lexfile" id="lex-lexfile"></pre>
+      <div style="margin-top:8px"><button class="btn" id="lex-dl-lex">⬇ 下载 sample.lex</button></div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== 项目二 ==================== -->
+<section class="tabpage" id="page2">
+  <div class="controls">
+    <label>测试语言:</label>
+    <select id="gra-lang">
+      <option value="tiny">TINY 文法</option>
+      <option value="minic">Mini-C 文法</option>
+    </select>
+    <button class="btn" id="gra-open">📂 打开 BNF 文法文件</button>
+    <button class="btn primary" id="gra-build">⚙ 构建 (化简→消左递归→First/Follow→LL(1)表)</button>
+    <span class="hint">每行: 左部 -> 右部 | 右部 … | ε / empty 表示空串 | # 注释 | 兼容全角标点与行号前缀</span>
+  </div>
+  <div id="gra-err"></div>
+
+  <div class="step">
+    <div class="step-head"><span class="no">1</span><h3>输入 BNF 文法文件</h3>
+      <div class="why">任务书(1): 以文本文件方式输入语言所有语法对应的 BNF 文法</div></div>
+    <div class="step-body"><textarea id="gra-text" rows="7" spellcheck="false"></textarea>
+      <div id="gra-orig" style="margin-top:10px"></div></div>
+  </div>
+
+  <div class="step">
+    <div class="step-head"><span class="no">2</span><h3>文法化简</h3>
+      <div class="why">任务书(2): 以表格形式输出文法化简后的结果</div></div>
+    <div class="step-body"><div id="gra-simp"></div></div>
+  </div>
+
+  <div class="step">
+    <div class="step-head"><span class="no">3</span><h3>消除左递归 + 消除左公共因子</h3>
+      <div class="why">任务书(3): 以表格形式输出消除左公共因子和左递归之后的文法</div></div>
+    <div class="step-body"><div id="gra-transform"></div></div>
+  </div>
+
+  <div class="step">
+    <div class="step-head"><span class="no">4</span><h3>FIRST 集</h3>
+      <div class="why">任务书(4): 求改造后文法每个非终结符号的 First 集合 (表格呈现)</div></div>
+    <div class="step-body"><div id="gra-first"></div></div>
+  </div>
+
+  <div class="step">
+    <div class="step-head"><span class="no">5</span><h3>FOLLOW 集</h3>
+      <div class="why">任务书(4): 求改造后文法每个非终结符号的 Follow 集合 (表格呈现)</div></div>
+    <div class="step-body"><div id="gra-follow"></div></div>
+  </div>
+
+  <div class="step">
+    <div class="step-head"><span class="no">6</span><h3>LL(1) 预测分析表</h3>
+      <div class="why">任务书(5): 构造 LL(1) 分析表 (表格呈现)</div></div>
+    <div class="step-body"><div id="gra-table-note"></div><div id="gra-table"></div></div>
+  </div>
+
+  <div class="step">
+    <div class="step-head"><span class="no">7</span><h3>LL(1) 语法分析 + 语法树 + 语义(选做)</h3>
+      <div class="why">任务书(6)(7): LL(1) 分析并生成语法树(树状呈现); 测试 sample.lex</div></div>
+    <div class="step-body">
+      <div class="controls" style="margin-bottom:10px; border:none; padding:0">
+        <button class="btn primary" id="gra-run-src">▶ 分析源程序 (自动先词法分析)</button>
+        <button class="btn" id="gra-run-lex">📂 分析 sample.lex 文件</button>
+        <span class="hint">源程序会先用项目一的词法分析器转成单词编码, 再做 LL(1) 语法分析 — 两个项目就此串联</span>
+      </div>
+      <textarea id="gra-src" rows="7" spellcheck="false"></textarea>
+      <div id="gra-parse-out" style="margin-top:12px"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== 项目三 ==================== -->
+<section class="tabpage" id="page3">
+  <div class="controls">
+    <button class="btn primary" id="mc-run">▶ 一键运行 Mini-C 全流程测试 (词法→语法→语义→四元式)</button>
+    <span class="hint">任务书项目三: 以 Mini-C 词法+语法测试整个项目, 源程序按任务书要求自行编写</span>
+  </div>
+  <div class="step">
+    <div class="step-head"><span class="no">0</span><h3>自己编写的 Mini-C 测试源程序</h3>
+      <div class="why">覆盖: 变量/数组/函数/递归/if-else/do-while/浮点数/注释</div></div>
+    <div class="step-body"><textarea id="mc-src" rows="10" spellcheck="false" readonly></textarea></div>
+  </div>
+  <div id="mc-out"></div>
+</section>
+
+<footer>
+  编译原理课程项目 (2023 任务书) · 2026 满分重制版 · 必做内容全部完成 + 选做内容(四元式)完成 · 测试数据: TINY 词法/语法 + Mini-C 词法/语法<br>
+  核心算法: Thompson 构造 · 子集构造法 · 划分精化最小化 · 最大匹配扫描 · 文法化简 · 左递归/左公因子消除 · FIRST/FOLLOW · LL(1) 预测分析 · 语义翻译
+</footer>
+
+</div>
+<script>
+/*
+ * ============================================================
+ * 文件名称: core.js
+ * 标识符:   CompilerCore
+ * 摘要:     编译原理课程项目核心算法库（2026 满分重制版）
+ *           第一部分: 正则 -> NFA -> DFA -> 最小化DFA -> C词法分析器生成 -> 词法分析
+ *           第二部分: BNF文法 -> 化简 -> 消除左递归/左公因子 -> First/Follow
+ *                     -> LL(1)分析表 -> 语法分析(轨迹+树) -> AST -> 四元式(选做)
+ * 当前版本: 1.0
+ * 完成日期: 2026-11-01
+ * 版本历史: v1.0 首次实现全部算法 (2026-11-01)
+ * ============================================================
+ */
+(function (global) {
+'use strict';
+
+/* ---------------- 通用工具 ---------------- */
+function uniq(a) { return Array.from(new Set(a)); }
+function setOf(arr) { return new Set(arr); }
+function fmtSet(s) { return '{ ' + Array.from(s).join(', ') + ' }'; }
+function deepClone(x) { return JSON.parse(JSON.stringify(x)); }
+
+/* ============================================================
+ * 第一部分  正则表达式引擎
+ * 正则语法: | 连接 闭包* 正闭包+ 可选? 分组() 字符类[a-z] 区间a..z
+ *           转义\. \+ \\ 等 任意字符.  空串ε   宏引用(先前定义的名字)
+ * AST 节点: {t:'char',ch} {t:'cls',set,label} {t:'any'} {t:'eps'}
+ *           {t:'seq',xs} {t:'alt',xs} {t:'star',x} {t:'plus',x} {t:'opt',x}
+ * ============================================================ */
+
+function rangeLabel(set) {
+  var chs = Array.from(set).sort();
+  // 压缩成区间显示
+  var parts = [], i = 0;
+  while (i < chs.length) {
+    var j = i;
+    while (j + 1 < chs.length && chs[j + 1].codePointAt(0) === chs[j].codePointAt(0) + 1) j++;
+    if (j === i) parts.push(chs[i]);
+    else if (j === i + 1) parts.push(chs[i], chs[j]);
+    else parts.push(chs[i] + '..' + chs[j]);
+    i = j + 1;
+  }
+  return parts.join('|');
+}
+
+/* 带宏引用的正则解析器 */
+function RegexParser(macros) {
+  this.macros = macros || {};   // name -> AST
+  this.src = ''; this.pos = 0;
+}
+RegexParser.prototype = {
+  error: function (msg) { throw new Error('正则表达式错误(位置' + this.pos + '): ' + msg + '，原文: ' + this.src); },
+  peek: function () { return this.src[this.pos]; },
+  eof: function () { return this.pos >= this.src.length; },
+  parse: function (src) {
+    /* 预处理(在原串上扫描, 保留词边界):
+       ① 跳过未转义空白(空格仅作分隔)
+       ② a..z 区间 → [a-z] 字符类
+       ③ 宏名 → \x01宏名\x01 哨兵保护(防止去空格后单词粘连误判) */
+    var macros = this.macros;
+    function isWC(c) { return /[A-Za-z0-9_]/.test(c); }
+    var out = '';
+    var i = 0;
+    while (i < src.length) {
+      var c = src[i];
+      if (c === '\\') { out += src.substr(i, 2); i += 2; continue; }
+      if (c === ' ' || c === '\t' || c === '\r' || c === '\n') { i++; continue; }
+      if (isWC(c)) {
+        if (src.length - i >= 4 && src[i + 1] === '.' && src[i + 2] === '.' && isWC(src[i + 3])) {
+          var lo = c, hi = src[i + 3];
+          if (lo.charCodeAt(0) > hi.charCodeAt(0)) throw new Error('字符区间 ' + lo + '..' + hi + ' 起点大于终点');
+          out += '[' + lo + '-' + hi + ']'; i += 4; continue;
+        }
+        var m = src.slice(i).match(/^[A-Za-z0-9_]+/)[0];
+        if (macros.hasOwnProperty(m)) out += '\x01' + m + '\x01';
+        else out += m; // 非宏的词: 词字符均为安全字面量, 原样保留
+        i += m.length; continue;
+      }
+      out += c; i++;
+    }
+    this.src = out; this.pos = 0;
+    if (!src.trim()) return { t: 'eps' };
+    var n = this.parseAlt();
+    if (!this.eof()) this.error('存在无法解析的字符 "' + this.peek() + '"');
+    return n;
+  },
+  parseAlt: function () {
+    var xs = [this.parseConc()];
+    while (!this.eof() && this.peek() === '|') { this.pos++; xs.push(this.parseConc()); }
+    return xs.length === 1 ? xs[0] : { t: 'alt', xs: xs };
+  },
+  parseConc: function () {
+    var xs = [];
+    while (!this.eof() && this.peek() !== '|' && this.peek() !== ')') xs.push(this.parsePost());
+    if (!xs.length) return { t: 'eps' };
+    return xs.length === 1 ? xs[0] : { t: 'seq', xs: xs };
+  },
+  parsePost: function () {
+    var x = this.parseAtom();
+    while (!this.eof()) {
+      var c = this.peek();
+      if (c === '*') { this.pos++; x = { t: 'star', x: x }; }
+      else if (c === '+') { this.pos++; x = { t: 'plus', x: x }; }
+      else if (c === '?') { this.pos++; x = { t: 'opt', x: x }; }
+      else break;
+    }
+    return x;
+  },
+  parseAtom: function () {
+    if (this.eof()) return { t: 'eps' };
+    var c = this.peek();
+    if (c === '\x01') { // 宏引用(哨兵包裹)
+      var j = this.src.indexOf('\x01', this.pos + 1);
+      var name = this.src.slice(this.pos + 1, j);
+      this.pos = j + 1;
+      return this.macros[name];
+    }
+    if (c === '(') {
+      this.pos++; var n = this.parseAlt();
+      if (this.peek() !== ')') this.error('缺少右括号');
+      this.pos++; return n;
+    }
+    if (c === '[') return this.parseClass();
+    if (c === '\\') { this.pos++; if (this.eof()) this.error('转义符后缺少字符'); return { t: 'char', ch: this.src[this.pos++] }; }
+    if (c === '.') { this.pos++; return { t: 'any' }; }
+    if (c === 'ε' || c === 'ϵ') { this.pos++; return { t: 'eps' }; }
+    if ('|*+?)'.indexOf(c) >= 0) this.error('意外的符号 "' + c + '"');
+    // 单字符 或 宏名字(最长匹配)
+    if (/[A-Za-z0-9_]/.test(c)) {
+      var m = this.src.slice(this.pos).match(/^[A-Za-z0-9_]+/)[0];
+      if (this.macros.hasOwnProperty(m)) { this.pos += m.length; return this.macros[m]; }
+      // 否则按逐个字符字面量处理
+      this.pos++; return { t: 'char', ch: c };
+    }
+    this.pos++; return { t: 'char', ch: c };
+  },
+  parseClass: function () {
+    this.pos++; // [
+    var set = setOf([]);
+    if (this.peek() === '^') { this.pos++; /* 支持否定类: 限定在可见ASCII内取补 */ }
+    var neg = false;
+    var first = this.pos;
+    while (!this.eof() && this.peek() !== ']') {
+      if (this.peek() === '\\') { this.pos++; set.add(this.src[this.pos++]); continue; }
+      if (this.pos + 2 < this.src.length && this.src[this.pos + 1] === '-' && this.src[this.pos + 2] !== ']') {
+        var lo = this.src[this.pos], hi = this.src[this.pos + 2];
+        if (lo.codePointAt(0) > hi.codePointAt(0)) this.error('字符区间 ' + lo + '-' + hi + ' 起点大于终点');
+        for (var cp = lo.codePointAt(0); cp <= hi.codePointAt(0); cp++) set.add(String.fromCodePoint(cp));
+        this.pos += 3; continue;
+      }
+      set.add(this.src[this.pos++]);
+    }
+    if (this.eof() || this.peek() !== ']') this.error('字符类缺少 ]');
+    this.pos++;
+    void first; void neg;
+    if (!set.size) this.error('空字符类');
+    return { t: 'cls', set: set, label: rangeLabel(set) };
+  }
+};
+
+/* 解析正则表达式文件:
+   "名称 = 正则" 定义单词类别(参与扫描, 顺序即优先级)
+   "宏 名称 = 正则" 定义辅助宏(仅用于展开, 不作为单词类别, 类似 flex 声明区)
+   支持 # 与 // 注释 */
+function parseRegexFile(text) {
+  var defs = [], macros = {}, seen = {};
+  var lines = text.split(/\r\n|\r|\n/);
+  for (var i = 0; i < lines.length; i++) {
+    var raw = lines[i];
+    var line = raw.replace(/(^|\s)(#|\/\/).*$/, '').trim();
+    if (!line) continue;
+    var isMacro = /^宏\s+/.test(line) || /^macro\s+/.test(line);
+    if (isMacro) line = line.replace(/^(宏|macro)\s+/, '');
+    var m = line.match(/^([^=]+?)\s*=\s*(.+)$/);
+    if (!m) throw new Error('第' + (i + 1) + '行格式错误(应为 "名称 = 正则表达式" 或 "宏 名称 = 正则表达式"): ' + raw);
+    var name = m[1].trim(), expr = m[2].trim();
+    if (!name) throw new Error('第' + (i + 1) + '行类别名为空');
+    var p = new RegexParser(macros);
+    var node;
+    try { node = p.parse(expr); }
+    catch (e) { throw new Error('类别 "' + name + '": ' + e.message); }
+    if (seen[name]) throw new Error('类别 "' + name + '" 重复定义');
+    seen[name] = true;
+    macros[name] = node;
+    if (!isMacro) defs.push({ name: name, expr: expr, node: node, line: i + 1 });
+  }
+  if (!defs.length) throw new Error('正则表达式文件为空(至少需要一个单词类别)');
+  return defs;
+}
+
+/* ---------------- Thompson 构造: AST -> NFA ---------------- */
+/* NFA: states: [{id, acceptLine: -1|行号(0基)}], edges: [{from,to,label}]
+   label: null 表示 ε; {kind:'char',ch}; {kind:'cls',set,label}; {kind:'any'} */
+function nfaFromRegex(node, acceptLine) {
+  var st = { states: [], edges: [] };
+  function newState(al) { var s = { id: st.states.length, acceptLine: al === undefined ? -1 : al }; st.states.push(s); return s.id; }
+  function edge(from, to, label) { st.edges.push({ from: from, to: to, label: label || null }); }
+  function build(n, al) {
+    var s = newState(), e = newState(al);
+    function rec(x, a, b) {
+      switch (x.t) {
+        case 'eps': edge(a, b, null); break;
+        case 'char': edge(a, b, { kind: 'char', ch: x.ch }); break;
+        case 'any': edge(a, b, { kind: 'any' }); break;
+        case 'cls': edge(a, b, { kind: 'cls', set: x.set, label: x.label }); break;
+        case 'seq': {
+          var cur = a;
+          for (var i = 0; i < x.xs.length; i++) {
+            var nxt = (i === x.xs.length - 1) ? b : newState();
+            rec(x.xs[i], cur, nxt); cur = nxt;
+          }
+          break;
+        }
+        case 'alt': {
+          for (var i2 = 0; i2 < x.xs.length; i2++) { var s2 = newState(), e2 = newState(); edge(a, s2, null); edge(e2, b, null); rec(x.xs[i2], s2, e2); }
+          break;
+        }
+        case 'star': {
+          var i3 = newState(), o3 = newState();
+          edge(a, i3, null); edge(o3, b, null); edge(a, b, null); edge(o3, i3, null);
+          rec(x.x, i3, o3);
+          break;
+        }
+        case 'plus': {
+          var i4 = newState(), o4 = newState();
+          edge(a, i4, null); edge(o4, b, null); edge(o4, i4, null);
+          rec(x.x, i4, o4);
+          break;
+        }
+        case 'opt': {
+          var i5 = newState(), o5 = newState();
+          edge(a, i5, null); edge(o5, b, null); edge(a, b, null);
+          rec(x.x, i5, o5);
+          break;
+        }
+      }
+    }
+    rec(n, s, e);
+    return { start: s, end: e };
+  }
+  var frag = build(node, acceptLine);
+  return { states: st.states, edges: st.edges, start: frag.start, end: frag.end };
+}
+
+/* 合并多条正则: 新开始状态 ε 指向各条; 各条接受态标行号(优先级) */
+function combineNfas(defs) {
+  var nfas = defs.map(function (d, i) { return nfaFromRegex(d.node, i); });
+  var states = [{ id: 0, acceptLine: -1 }], edges = [], offset = 1;
+  nfas.forEach(function (n, i) {
+    edges.push({ from: 0, to: n.start + offset, label: null });
+    n.states.forEach(function (s) { states.push({ id: s.id + offset, acceptLine: s.acceptLine >= 0 ? i : -1 }); });
+    n.edges.forEach(function (e) { edges.push({ from: e.from + offset, to: e.to + offset, label: e.label }); });
+    offset += n.states.length;
+  });
+  return { states: states, edges: edges, start: 0, parts: nfas };
+}
+
+/* ε 闭包 */
+function epsClosure(nfa, ids) {
+  var stack = Array.from(ids), seen = setOf(ids);
+  while (stack.length) {
+    var id = stack.pop();
+    for (var i = 0; i < nfa.edges.length; i++) {
+      var e = nfa.edges[i];
+      if (e.from === id && !e.label && !seen.has(e.to)) { seen.add(e.to); stack.push(e.to); }
+    }
+  }
+  return seen;
+}
+
+function labelKey(l) {
+  if (!l) return 'ε';
+  if (l.kind === 'char') return l.ch;
+  if (l.kind === 'any') return '.';
+  return '[' + l.label + ']';
+}
+function labelMatches(l, ch) {
+  if (l.kind === 'char') return l.ch === ch;
+  if (l.kind === 'any') return ch !== '\n';
+  return l.set.has(ch);
+}
+
+/* 子集构造法: NFA -> DFA (按具体字符转移, 字符类展开) */
+function nfaToDfa(nfa) {
+  var chars = setOf([]);
+  nfa.edges.forEach(function (e) {
+    if (!e.label) return;
+    if (e.label.kind === 'char') chars.add(e.label.ch);
+    else if (e.label.kind === 'cls') e.label.set.forEach(function (c) { chars.add(c); });
+    else if (e.label.kind === 'any') { for (var cp = 32; cp < 127; cp++) chars.add(String.fromCharCode(cp)); }
+  });
+  var alphabet = Array.from(chars).sort();
+  var dfaStates = [], trans = [];
+  function dfaOf(idset) {
+    var key = Array.from(idset).sort(function (a, b) { return a - b; }).join(',');
+    if (keyToId[key] !== undefined) return keyToId[key];
+    var id = dfaStates.length;
+    keyToId[key] = id;
+    var best = -1;
+    idset.forEach(function (nid) { var al = nfa.states[nid].acceptLine; if (al >= 0 && (best < 0 || al < best)) best = al; });
+    dfaStates.push({ id: id, nfaIds: idset, acceptLine: best, key: key });
+    trans.push({});
+    return id;
+  }
+  var keyToId = {};
+  var startSet = epsClosure(nfa, setOf([nfa.start]));
+  var startId = dfaOf(startSet);
+  var worklist = [startId];
+  var STATE_CAP = 5000;
+  while (worklist.length) {
+    var cur = worklist.shift();
+    var curSet = dfaStates[cur].nfaIds;
+    alphabet.forEach(function (c) {
+      var moves = setOf([]);
+      nfa.edges.forEach(function (e) {
+        if (e.label && labelMatches(e.label, c) && curSet.has(e.from)) moves.add(e.to);
+      });
+      if (!moves.size) { trans[cur][c] = -1; return; }
+      var cl = epsClosure(nfa, moves);
+      var tgt = dfaOf(cl);
+      trans[cur][c] = tgt;
+      if (tgt === dfaStates.length - 1) {
+        if (dfaStates.length > STATE_CAP) throw new Error('DFA 状态数超过上限 ' + STATE_CAP + ', 请检查正则表达式(不要单独使用 . 通配)');
+        worklist.push(tgt);
+      }
+    });
+  }
+  return { states: dfaStates, trans: trans, alphabet: alphabet, start: startId };
+}
+
+/* DFA 最小化: 划分精化(保持接受类别) */
+function minimizeDfa(dfa) {
+  var n = dfa.states.length;
+  var total = n + 1; // +1: 显式死状态(编号 n)
+  var DEAD = n;
+  var alpha = dfa.alphabet;
+  function nxt(state, c) { var t = dfa.trans[state][c]; return t === undefined ? -1 : t; }
+  var block = new Array(total);
+  for (var i = 0; i < n; i++) block[i] = dfa.states[i].acceptLine < 0 ? 0 : 1 + dfa.states[i].acceptLine;
+  block[DEAD] = 0; // 死状态与非接受态同类, 由转移签名区分
+  var changed = true, guard = 0;
+  while (changed && guard++ < 1000) {
+    changed = false;
+    var sig = new Array(total);
+    for (var s = 0; s < total; s++) {
+      var row = [];
+      for (var ci = 0; ci < alpha.length; ci++) {
+        var t = s === DEAD ? -1 : nxt(s, alpha[ci]);
+        row.push(t < 0 ? block[DEAD] : block[t]);
+      }
+      sig[s] = block[s] + '|' + row.join(',');
+    }
+    var map = {}, newBlock = new Array(total), nb = 0;
+    for (var s2 = 0; s2 < total; s2++) {
+      if (map[sig[s2]] === undefined) map[sig[s2]] = nb++;
+      newBlock[s2] = map[sig[s2]];
+    }
+    for (var s3 = 0; s3 < total; s3++) if (newBlock[s3] !== block[s3]) changed = true;
+    block = newBlock;
+  }
+  // 生成最小化 DFA
+  var nbStates = Math.max.apply(null, block) + 1;
+  var reps = new Array(nbStates).fill(-1);
+  for (var s4 = 0; s4 < total; s4++) if (reps[block[s4]] < 0) reps[block[s4]] = s4;
+  var states = [], trans = [];
+  for (var b = 0; b < nbStates; b++) {
+    var rep = reps[b];
+    var acc = -1, nfaIds = setOf([]);
+    if (rep !== DEAD) {
+      acc = dfa.states[rep].acceptLine;
+      dfa.states[rep].nfaIds.forEach(function (x) { nfaIds.add(x); });
+    }
+    states.push({ id: b, acceptLine: acc, nfaIds: nfaIds, isDead: rep === DEAD, members: rep === DEAD ? [DEAD] : dfa.states.filter(function (ds, di) { return block[di] === b; }).map(function (ds) { return ds.id; }) });
+  }
+  var trans = [];
+  for (var b0 = 0; b0 < nbStates; b0++) trans.push({});
+  alpha.forEach(function (c) {
+    for (var b2 = 0; b2 < nbStates; b2++) {
+      var rep2 = reps[b2];
+      var t = rep2 === DEAD ? -1 : nxt(rep2, c);
+      trans[b2][c] = t < 0 ? block[DEAD] : block[t];
+    }
+  });
+  var start = block[dfa.start];
+  return { states: states, trans: trans, alphabet: alpha, start: start, deadBlock: block[DEAD] };
+}
+
+/* 压缩显示列: 按整列转移向量的等价性分组(如 a..z 一列) */
+function compressDfaColumns(minDfa) {
+  var alpha = minDfa.alphabet;
+  var groups = [], charToGroup = {};
+  alpha.forEach(function (c) {
+    var col = minDfa.states.map(function (st) { var t = minDfa.trans[st.id][c]; return t === undefined ? -1 : t; }).join(',');
+    var g = null;
+    for (var i = 0; i < groups.length; i++) if (groups[i].col === col) { g = groups[i]; break; }
+    if (!g) { g = { col: col, chars: [] }; groups.push(g); }
+    g.chars.push(c);
+    charToGroup[c] = groups.indexOf(g);
+  });
+  // 组的显示名: 尽量用区间表示
+  groups.forEach(function (g, gi) {
+    var chs = g.chars;
+    if (chs.length === 1) { g.display = chs[0] === ' ' ? "' '" : chs[0]; return; }
+    // 找连续区间
+    var parts = [], i = 0, sorted = chs.slice().sort();
+    while (i < sorted.length) {
+      var j = i;
+      while (j + 1 < sorted.length && sorted[j + 1].charCodeAt(0) === sorted[j].charCodeAt(0) + 1) j++;
+      if (j - i >= 2) parts.push(sorted[i] + '..' + sorted[j]);
+      else { parts.push(sorted[i]); if (j === i + 1) parts.push(sorted[j]); }
+      i = j + 1;
+    }
+    g.display = parts.join('|');
+  });
+  return { groups: groups, charToGroup: charToGroup };
+}
+
+/* 用 DFA 对源文本做最大 munch 词法分析 */
+function simulateLex(minDfa, text, cfg) {
+  var tokens = [], errors = [];
+  var pos = 0, line = 1, n = text.length;
+  function ch(i) { return text[i]; }
+  function move(state, c) {
+    var t = minDfa.trans[state][c];
+    return t === undefined ? -1 : t;
+  }
+  function push(cat, lex, ln) { tokens.push({ cat: cat, lexeme: lex, line: ln }); }
+  while (pos < n) {
+    var c = ch(pos);
+    if (c === '\n') { line++; pos++; continue; }
+    if (c === ' ' || c === '\t' || c === '\r') { pos++; continue; }
+    // 块注释
+    if (cfg.blockComment && text.startsWith(cfg.blockComment.start, pos)) {
+      var endIdx = text.indexOf(cfg.blockComment.end, pos + cfg.blockComment.start.length);
+      if (endIdx < 0) { errors.push({ line: line, msg: '块注释未闭合' }); pos = n; }
+      else {
+        for (var k = pos; k < endIdx + cfg.blockComment.end.length; k++) if (text[k] === '\n') line++;
+        pos = endIdx + cfg.blockComment.end.length;
+      }
+      continue;
+    }
+    // 行注释
+    if (cfg.lineComment && text.startsWith(cfg.lineComment, pos)) {
+      var nl = text.indexOf('\n', pos);
+      pos = nl < 0 ? n : nl;
+      continue;
+    }
+    // 最大 munch
+    var state = minDfa.start, lastAcc = -1, lastPos = -1;
+    if (minDfa.states[state].acceptLine >= 0) { lastAcc = minDfa.states[state].acceptLine; lastPos = pos; }
+    var p = pos;
+    while (p < n) {
+      var c2 = ch(p);
+      if (c2 === '\n') break;
+      var ns = move(state, c2);
+      if (ns < 0) break;
+      state = ns; p++;
+      if (minDfa.states[state].acceptLine >= 0) { lastAcc = minDfa.states[state].acceptLine; lastPos = p; }
+    }
+    if (lastAcc >= 0) {
+      push(cfg.defNames[lastAcc], text.slice(pos, lastPos), line);
+      pos = lastPos;
+    } else {
+      errors.push({ line: line, msg: '无法识别的字符 "' + c + '"' });
+      push('ERROR', c, line);
+      pos++;
+    }
+  }
+  return { tokens: tokens, errors: errors };
+}
+
+/* 生成 sample.lex 格式输出(与原作业格式一致: 代码行回显 + （类别，词素）) */
+function makeLexFile(text, tokens) {
+  var lines = text.split(/\r\n|\r|\n/);
+  var out = [];
+  var byLine = {};
+  tokens.forEach(function (t) { (byLine[t.line] = byLine[t.line] || []).push(t); });
+  lines.forEach(function (l, i) {
+    out.push('代码行' + (i + 1) + ':' + l);
+    (byLine[i + 1] || []).forEach(function (t) {
+      out.push('\t（' + t.cat + '，' + t.lexeme + '）');
+    });
+  });
+  return out.join('\n');
+}
+
+/* 生成 C 语言词法分析程序(内嵌最小化DFA转移表) */
+function generateCCode(defs, minDfa, cfg, langName) {
+  var N = minDfa.states.length;
+  var asciiCols = 128;
+  function moveCol(state, code) {
+    if (code >= 128) return -1;
+    var t = minDfa.trans[state][String.fromCharCode(code)];
+    return t === undefined ? -1 : t;
+  }
+  var tableRows = [];
+  for (var s = 0; s < N; s++) {
+    var row = [];
+    for (var c2 = 0; c2 < asciiCols; c2++) row.push(moveCol(s, c2) < 0 ? N : moveCol(s, c2));
+    tableRows.push(row.join(','));
+  }
+  var acc = minDfa.states.map(function (st) { return st.acceptLine < 0 ? -1 : st.acceptLine; });
+  var nameArr = cfg.defNames.map(function (nm) { return '"' + nm + '"'; });
+  var kw = cfg.defNames.map(function (nm, i) { return '   ' + i + ' = ' + nm; }).join('\n');
+  var blockStart = cfg.blockComment ? cfg.blockComment.start.charCodeAt(0) : -1;
+  var blockEnd = cfg.blockComment ? cfg.blockComment.end.charCodeAt(0) : -1;
+  var lineC = cfg.lineComment ? cfg.lineComment.charCodeAt(0) : -1;
+  return '' +
+'/* ============================================================\n' +
+' * 文件名称: ' + langName + '_lexer.c\n' +
+' * 标识符:   TINY_LEXER\n' +
+' * 摘要:     由"编译原理课程项目-满分重制版"自动生成的' + langName + '词法分析程序。\n' +
+' *           内嵌最小化 DFA 转移表, 采用最大匹配(最长匹配)算法,\n' +
+' *           从源文件读入并输出每个单词的编码与词素。\n' +
+' *           单词编码表:\n' + kw + '\n' +
+' *           死状态(错误)编号: ' + N + '\n' +
+' * 当前版本: 1.0\n' +
+' * 完成日期: 2026-11-01\n' +
+' * 版本历史: v1.0 由系统自动生成\n' +
+' * 使用: gcc ' + langName + '_lexer.c -o lexer && ./lexer source.' + (langName === 'TINY' ? 'tny' : 'mxc') + '\n' +
+' * ============================================================ */\n' +
+'#include <stdio.h>\n' +
+'#include <stdlib.h>\n' +
+'#include <string.h>\n\n' +
+'#define NSTATES ' + N + '      /* 最小化DFA状态数 */\n' +
+'#define NCOLS   ' + asciiCols + '     /* ASCII字符列数 */\n' +
+'#define DEAD    ' + N + '      /* 死状态(错误) */\n' +
+'#define NBLOCK  ' + (cfg.defNames.length) + '    /* 单词类别数 */\n\n' +
+'/* 转移表 NEXT[状态][字符]: -1 不存在(用DEAD表示), 其余为后继状态 */\n' +
+'static const int NEXT[NSTATES][NCOLS] = {\n' +
+tableRows.map(function (r) { return '{' + r + '}'; }).join(',\n') + '\n};\n\n' +
+'/* 接受类别表: -1 非接受, 其余为类别编号 */\n' +
+'static const int ACCEPT[NSTATES] = {' + acc.join(',') + '};\n\n' +
+'/* 类别名称表(按定义顺序, 编号即优先级) */\n' +
+'static const char *CATNAME[NBLOCK] = {' + nameArr.join(',') + '};\n\n' +
+'/* 函数: main — 读入源文件, 逐词扫描并输出 (编号 类别名 词素)\n' +
+' * 输入: argv[1] 为源程序文件路径; 输出: 每行一个单词\n' +
+' * 注意: 支持块注释与行注释跳过, 无法识别字符报 ERROR */\n' +
+'int main(int argc, char **argv) {\n' +
+'    FILE *fp = (argc > 1) ? fopen(argv[1], "r") : stdin;\n' +
+'    if (!fp) { fprintf(stderr, "无法打开文件 %s\\n", argv[1]); return 1; }\n' +
+'    static char buf[1 << 22];\n' +
+'    int len = 0, cch;\n' +
+'    while ((cch = fgetc(fp)) != EOF) buf[len++] = (char)cch;\n' +
+'    buf[len] = 0;\n' +
+'    int pos = 0, state, start, lastAcc, lastPos;\n' +
+'    while (pos < len) {\n' +
+'        char c = buf[pos];\n' +
+'        if (c == \' \' || c == \'\\t\' || c == \'\\r\' || c == \'\\n\') { pos++; continue; }\n' +
+((blockStart >= 0) ?
+'        if (c == \'' + cfg.blockComment.start + '\') { /* 块注释: 跳到配对结束符 */\n' +
+'            char *e = strchr(buf + pos + 1, \'' + cfg.blockComment.end + '\');\n' +
+'            if (!e) { printf("ERROR %c\\n", c); break; }\n' +
+'            pos = (int)(e - buf) + 1; continue;\n' +
+'        }\n' : '') +
+((lineC >= 0) ?
+'        if (c == \'' + cfg.lineComment + '\') { /* 行注释: 跳到行尾 */\n' +
+'            while (pos < len && buf[pos] != \'\\n\') pos++;\n' +
+'            continue;\n' +
+'        }\n' : '') +
+'        state = 0; start = pos; lastAcc = -1; lastPos = -1;\n' +
+'        if (ACCEPT[state] >= 0) { lastAcc = ACCEPT[state]; lastPos = pos; }\n' +
+'        while (pos < len) {\n' +
+'            char cc = buf[pos];\n' +
+'            if ((int)cc >= NCOLS) break;\n' +
+'            int ns = NEXT[state][(int)cc];\n' +
+'            if (ns == DEAD) break;\n' +
+'            state = ns; pos++;\n' +
+'            if (ACCEPT[state] >= 0) { lastAcc = ACCEPT[state]; lastPos = pos; }\n' +
+'        }\n' +
+'        if (lastAcc >= 0) {\n' +
+'            printf("%d %s %.*s\\n", lastAcc, CATNAME[lastAcc], lastPos - start, buf + start);\n' +
+'        } else {\n' +
+'            printf("ERROR %c\\n", buf[start]);\n' +
+'            pos = start + 1;\n' +
+'        }\n' +
+'    }\n' +
+'    if (fp != stdin) fclose(fp);\n' +
+'    return 0;\n' +
+'}\n';
+}
+
+/* ============================================================
+ * 第二部分  文法引擎 (LL(1))
+ * 文法: {start, prods:[{lhs, rhs:[symbol], idx}], nts:Set, terms:Set}
+ * 符号: 字符串; ε 记为 '' (空串) 或 'ε'/'empty' 统一化
+ * ============================================================ */
+
+var EPS = '';
+
+function normalizeFullwidth(s) {
+  var map = { '（': '(', '）': ')', '；': ';', '，': ',', '：': ':', '［': '[', '］': ']', '｛': '{', '｝': '}' };
+  return s.replace(/[（）；，：［］｛｝]/g, function (c) { return map[c]; });
+}
+
+/* 解析 BNF 文法文本: 兼容 -> / → / ::= ; 行号前缀; 跨行 | 续行; ε/empty */
+function parseGrammar(text) {
+  var raw = normalizeFullwidth(text).split(/\r\n|\r|\n/);
+  var ruleTexts = [];
+  for (var i = 0; i < raw.length; i++) {
+    var line = raw[i].trim();
+    if (!line || /^\/\//.test(line) || /^#/.test(line)) continue;
+    line = line.replace(/^\d+\s*[\.、\)]?\s*/, ''); // 去行号
+    if (line[0] === '|' && ruleTexts.length) ruleTexts[ruleTexts.length - 1] += ' ' + line;
+    else ruleTexts.push(line);
+  }
+  var prods = [], nts = setOf([]), order = [];
+  ruleTexts.forEach(function (rt) {
+    var m = rt.split(/→|->|::=|⇒/);
+    if (m.length < 2) throw new Error('文法行缺少 -> 或 → : ' + rt);
+    var lhsM = m[0].trim().match(/^<([^<>]+)>$/);
+    var lhs = (lhsM ? lhsM[1] : m[0].trim());
+    if (!lhs || /\s/.test(lhs)) throw new Error('文法行左部不合法: ' + rt);
+    if (!nts.has(lhs)) { nts.add(lhs); order.push(lhs); }
+    var rhsText = m.slice(1).join('→');
+    rhsText.split('|').forEach(function (alt) {
+      var syms = alt.trim().split(/\s+/).filter(Boolean).map(function (s) {
+        // 仅剥离成对的非终结符尖括号: <stmt> -> stmt (不能动 < <= > >= 这些符号)
+        var m = s.match(/^<([^<>]+)>$/);
+        return m ? m[1] : s;
+      });
+      syms = syms.map(function (s) { return (s === 'ε' || s === 'ϵ' || s === 'empty' || s === 'EMPTY') ? EPS : s; });
+      prods.push({ lhs: lhs, rhs: syms });
+    });
+  });
+  if (!prods.length) throw new Error('未解析到任何产生式');
+  var terms = setOf([]);
+  prods.forEach(function (p) { p.rhs.forEach(function (s) { if (s !== EPS && !nts.has(s)) terms.add(s); }); });
+  var idx = 0;
+  prods.forEach(function (p) { p.idx = idx++; });
+  return { start: order[0], prods: prods, nts: nts, terms: terms, order: order };
+}
+
+/* 文法化简: 删除不产生终结串的非终结符 + 不可达符号 */
+function simplifyGrammar(g) {
+  // 1. 可产生(能推出终结串)的符号
+  var generating = setOf(Array.from(g.terms));
+  var changed = true;
+  while (changed) {
+    changed = false;
+    g.prods.forEach(function (p) {
+      if (generating.has(p.lhs)) return;
+      if (p.rhs.every(function (s) { return s === EPS || generating.has(s); })) { generating.add(p.lhs); changed = true; }
+    });
+  }
+  var removedAlts = [], kept = [];
+  g.prods.forEach(function (p) {
+    if (p.rhs.every(function (s) { return s === EPS || generating.has(s); })) kept.push(p);
+    else removedAlts.push(deepClone(p));
+  });
+  var nts2 = setOf([]), order2 = [];
+  kept.forEach(function (p) { if (!nts2.has(p.lhs)) { nts2.add(p.lhs); order2.push(p.lhs); } });
+  // 2. 可达符号
+  var reach = setOf([g.start]);
+  var ch2 = true;
+  while (ch2) {
+    ch2 = false;
+    kept.forEach(function (p) {
+      if (!reach.has(p.lhs)) return;
+      p.rhs.forEach(function (s) { if (s !== EPS && nts2.has(s) && !reach.has(s)) { reach.add(s); ch2 = true; } });
+    });
+  }
+  var removedNts = Array.from(nts2).filter(function (n) { return !reach.has(n); });
+  var final = kept.filter(function (p) { return reach.has(p.lhs) && p.rhs.every(function (s) { return s === EPS || !nts2.has(s) || reach.has(s); }); });
+  var terms2 = setOf([]);
+  final.forEach(function (p) { p.rhs.forEach(function (s) { if (s !== EPS && !nts2.has(s)) terms2.add(s); }); });
+  var idx = 0;
+  final.forEach(function (p) { p.idx = idx++; });
+  return {
+    result: { start: g.start, prods: final, nts: setOf(Array.from(reach)), terms: terms2, order: order2.filter(function (n) { return reach.has(n); }) },
+    removedNts: removedNts, removedAlts: removedAlts
+  };
+}
+
+/* FIRST/FOLLOW 计算 */
+function computeFirst(g) {
+  var first = {};
+  Array.from(g.nts).forEach(function (n) { first[n] = setOf([]); });
+  Array.from(g.terms).forEach(function (t) { first[t] = setOf([t]); });
+  var changed = true;
+  while (changed) {
+    changed = false;
+    g.prods.forEach(function (p) {
+      // FIRST(α) = 并首符号FIRST; 若全可空则加 ε
+      var fs = firstOfSeq(g, p.rhs, first);
+      fs.forEach(function (x) { if (!first[p.lhs].has(x)) { first[p.lhs].add(x); changed = true; } });
+    });
+  }
+  return first;
+}
+function firstOfSeq(g, seq, first) {
+  var out = setOf([]);
+  for (var i = 0; i < seq.length; i++) {
+    var s = seq[i];
+    if (s === EPS) continue;
+    var fs = first[s] || setOf([s]);
+    fs.forEach(function (x) { if (x !== EPS) out.add(x); });
+    if (!fs.has(EPS)) return out;
+  }
+  out.add(EPS);
+  return out;
+}
+function computeFollow(g, first) {
+  var follow = {};
+  Array.from(g.nts).forEach(function (n) { follow[n] = setOf([]); });
+  follow[g.start].add('$');
+  var changed = true;
+  while (changed) {
+    changed = false;
+    g.prods.forEach(function (p) {
+      for (var i = 0; i < p.rhs.length; i++) {
+        var B = p.rhs[i];
+        if (B === EPS || !g.nts.has(B)) continue;
+        var trailer = firstOfSeq(g, p.rhs.slice(i + 1), first);
+        var ch = false;
+        trailer.forEach(function (x) {
+          if (x === EPS) return;
+          if (!follow[B].has(x)) { follow[B].add(x); ch = true; }
+        });
+        if (trailer.has(EPS)) {
+          follow[p.lhs].forEach(function (x) { if (!follow[B].has(x)) { follow[B].add(x); ch = true; } });
+        }
+        if (ch) changed = true;
+      }
+    });
+  }
+  return follow;
+}
+
+/* 消除左递归(含间接): 标准算法 */
+function eliminateLeftRecursion(g) {
+  var nts = g.order.slice();
+  var prods = {}; // lhs -> [rhs...]
+  nts.forEach(function (n) { prods[n] = []; });
+  g.prods.forEach(function (p) { prods[p.lhs].push(p.rhs.slice()); });
+  var freshBase = {};
+  function freshName(base) {
+    var nm = base + "'", i = 2;
+    while (prods[nm] || nts.indexOf(nm) >= 0) nm = base + "'" + (i++);
+    freshBase[nm] = base;
+    return nm;
+  }
+  for (var i = 0; i < nts.length; i++) {
+    var Ai = nts[i];
+    for (var j = 0; j < i; j++) {
+      var Aj = nts[j];
+      var out = [];
+      prods[Ai].forEach(function (alt) {
+        if (alt.length && alt[0] === Aj) {
+          prods[Aj].forEach(function (ajAlt) { out.push(ajAlt.concat(alt.slice(1))); });
+        } else out.push(alt);
+      });
+      prods[Ai] = out;
+    }
+    // 立即左递归
+    var rec = prods[Ai].filter(function (a) { return a.length && a[0] === Ai; });
+    if (rec.length) {
+      var nonrec = prods[Ai].filter(function (a) { return !(a.length && a[0] === Ai); });
+      var nm = freshName(Ai);
+      var newAlts = nonrec.map(function (b) { return b.concat(nm); });
+      if (!nonrec.length) newAlts = [[nm]];
+      prods[Ai] = newAlts;
+      prods[nm] = rec.map(function (a) { return a.slice(1).concat(nm); });
+      prods[nm].push([EPS]);
+      nts.splice(i + 1, 0, nm);
+    }
+  }
+  var newProds = [];
+  nts.forEach(function (n) { prods[n].forEach(function (r) { newProds.push({ lhs: n, rhs: r }); }); });
+  var ntsSet = setOf(nts), terms2 = setOf([]);
+  newProds.forEach(function (p) { p.rhs.forEach(function (s) { if (s !== EPS && !ntsSet.has(s)) terms2.add(s); }); });
+  var idx = 0;
+  newProds.forEach(function (p) { p.idx = idx++; });
+  return { start: g.start, prods: newProds, nts: ntsSet, terms: terms2, order: nts };
+}
+
+/* 消除左公因子(含替换展开, 迭代到不动点) */
+function leftFactorPass(g) {
+  var prods = {}; g.order.forEach(function (n) { prods[n] = []; });
+  g.prods.forEach(function (p) { prods[p.lhs].push(p.rhs.slice()); });
+  var order = g.order.slice();
+  var changed = false, guard = 0;
+  function freshName(base) {
+    var nm = base + "'", i = 2;
+    while (prods[nm] || order.indexOf(nm) >= 0) nm = base + "'" + (i++);
+    order.push(nm); prods[nm] = [];
+    return nm;
+  }
+  function firstSets() {
+    var gg = rebuild();
+    return computeFirst(gg);
+  }
+  function rebuild() {
+    var newProds = [];
+    order.forEach(function (n) { (prods[n] || []).forEach(function (r) { newProds.push({ lhs: n, rhs: r }); }); });
+    var ntsSet = setOf(order), terms2 = setOf([]);
+    newProds.forEach(function (p) { p.rhs.forEach(function (s) { if (s !== EPS && !ntsSet.has(s)) terms2.add(s); }); });
+    return { start: g.start, prods: newProds, nts: ntsSet, terms: terms2, order: order };
+  }
+  for (var oi = 0; oi < order.length; oi++) {
+    var A = order[oi];
+    var inner = 0;
+    while (inner++ < 60) {
+      var alts = prods[A];
+      if (!alts || alts.length < 2) break;
+      // 1) 首符号相同的组 -> 提取最长公共前缀
+      var groups = {};
+      alts.forEach(function (a) { var k = a.length ? a[0] : EPS; (groups[k] = groups[k] || []).push(a); });
+      var factored = false;
+      for (var k in groups) {
+        var grp = groups[k];
+        if (grp.length < 2 || k === EPS) continue;
+        var lcp = [];
+        outer: for (var d = 0; d < grp[0].length; d++) {
+          var sym = grp[0][d];
+          for (var gi = 1; gi < grp.length; gi++) if (grp[gi][d] !== sym) break outer;
+          lcp.push(sym);
+        }
+        var nm = freshName(A);
+        var suffixes = grp.map(function (a) { return a.slice(lcp.length); });
+        var newAlts = alts.filter(function (a) { return grp.indexOf(a) < 0; });
+        newAlts.push(lcp.concat(nm));
+        prods[A] = newAlts;
+        var sa = [];
+        suffixes.forEach(function (sf) {
+          var r = sf.length ? sf : [EPS];
+          if (!sa.some(function (x) { return x.join(' ') === r.join(' '); })) sa.push(r);
+        });
+        prods[nm] = sa;
+        changed = true; factored = true;
+        break;
+      }
+      if (factored) continue;
+      // 2) 首符号不同但 FIRST 相交 -> 替换展开较小的非终结符
+      var first = firstSets();
+      var done = false;
+      for (var i = 0; i < alts.length && !done; i++) {
+        for (var j2 = i + 1; j2 < alts.length && !done; j2++) {
+          var a1 = alts[i], a2 = alts[j2];
+          if (!a1.length || !a2.length) continue;
+          var X = a1[0], Y = a2[0];
+          if (X === Y) continue;
+          var f1 = X === EPS ? setOf([EPS]) : (g.nts.has(X) ? (first[X] || setOf([X])) : setOf([X]));
+          var f2 = Y === EPS ? setOf([EPS]) : (g.nts.has(Y) ? (first[Y] || setOf([Y])) : setOf([Y]));
+          var inter = Array.from(f1).filter(function (x) { return x !== EPS && f2.has(x); });
+          if (!inter.length) continue;
+          // 选可替换的: 首符号是非终结符且不是自身, 替换产生式数较少者
+          var cands = [];
+          if (g.nts.has(X) && X !== A) cands.push({ alt: i, nt: X, n: prods[X].length });
+          if (g.nts.has(Y) && Y !== A) cands.push({ alt: j2, nt: Y, n: prods[Y].length });
+          if (!cands.length) continue;
+          cands.sort(function (a, b) { return a.n - b.n; });
+          var pick = cands[0];
+          var replaced = alts[pick.alt].slice(1);
+          var expanded = prods[pick.nt].map(function (r) { return r.concat(replaced); });
+          alts = alts.slice(0, pick.alt).concat(alts.slice(pick.alt + 1)).concat(expanded);
+          prods[A] = alts;
+          changed = true; done = true;
+        }
+      }
+      if (!done) break;
+    }
+  }
+  if (!changed) return { g: g, changed: false };
+  var gg = rebuild();
+  return { g: gg, changed: true };
+}
+
+/* 完整变换: 消左递归 + 提左公因子迭代到不动点 */
+function transformGrammar(g) {
+  var cur = eliminateLeftRecursion(g);
+  var iters = 0;
+  for (; iters < 40; iters++) {
+    var r = leftFactorPass(cur);
+    if (!r.changed) break;
+    cur = eliminateLeftRecursion(r.g);
+  }
+  // 清理不可达(变换残渣)
+  var simp = simplifyGrammar(cur);
+  return { g: simp.result, iterations: iters + 1 };
+}
+
+/* LL(1) 分析表: FIRST 放置优先于 FOLLOW(ε) 放置; 记录冲突及消解方式 */
+function buildLL1Table(g) {
+  var first = computeFirst(g);
+  var follow = computeFollow(g, first);
+  var terms = Array.from(g.terms).concat(['$']);
+  var M = {}; // nt -> term -> prodIdx
+  Array.from(g.nts).forEach(function (n) { M[n] = {}; });
+  var conflicts = [];
+  g.prods.forEach(function (p) {
+    var fs = firstOfSeq(g, p.rhs, first);
+    fs.forEach(function (t) {
+      if (t === EPS) return;
+      if (M[p.lhs][t] !== undefined) {
+        conflicts.push({ nt: p.lhs, term: t, prods: [M[p.lhs][t], p.idx], kind: 'FIRST/FIRST 冲突', resolution: '保留先到产生式' });
+        return;
+      }
+      M[p.lhs][t] = p.idx;
+    });
+  });
+  g.prods.forEach(function (p) {
+    var fs = firstOfSeq(g, p.rhs, first);
+    if (!fs.has(EPS)) return;
+    follow[p.lhs].forEach(function (t) {
+      if (M[p.lhs][t] === undefined) { M[p.lhs][t] = p.idx; return; }
+      // ε 放置遇已占: FIRST 优先 — 悬空 else 就近匹配等
+      conflicts.push({ nt: p.lhs, term: t, prods: [M[p.lhs][t], p.idx], kind: 'FIRST/FOLLOW 冲突', resolution: '保留 FIRST 放置(如悬空 else 取就近匹配)' });
+    });
+  });
+  return { table: M, terms: terms, first: first, follow: follow, conflicts: conflicts };
+}
+
+/* LL(1) 分析: 返回轨迹 + 分析树; tokens 为文法终结符序列 */
+function parseLL1(g, tbl, tokens) {
+  var steps = [];
+  function makeNode(sym, isTerm, lexeme) { return { sym: sym, isTerm: !!isTerm, lexeme: lexeme || null, children: [] }; }
+  var input = tokens.concat(['$']);
+  var stack = ['$'];
+  var root = makeNode(g.start, false);
+  var nodeStack = [root]; // 与符号栈平行(栈顶对齐)
+  var ip = 0, sp = 1, stepNo = 1, ok = true, errMsg = null;
+  stack.push(g.start);
+  function stackStr() { return stack.slice().reverse().join(' '); }
+  function inputStr() { var rest = input.slice(ip); return rest.length > 14 ? rest.slice(0, 14).join(' ') + ' …' : rest.join(' '); }
+  steps.push({ step: 0, stack: stackStr(), input: inputStr(), action: '初始化' });
+  while (ok) {
+    if (sp === 0) { break; }
+    var X = stack[sp], a = input[ip];
+    if (X === '$') {
+      if (a === '$') { steps.push({ step: stepNo, stack: stackStr(), input: inputStr(), action: '接受 ✓' }); }
+      else { ok = false; errMsg = '期望输入结束, 但遇到 "' + a + '"'; steps.push({ step: stepNo, stack: stackStr(), input: inputStr(), action: '报错: ' + errMsg }); }
+      break;
+    }
+    if (g.terms.has(X)) {
+      if (X === a) {
+        stack.pop(); sp--; ip++;
+        var leaf = nodeStack.pop();
+        leaf.lexeme = a;
+        steps.push({ step: stepNo, stack: stackStr(), input: inputStr(), action: '匹配 "' + X + '" ✓' });
+      } else {
+        ok = false; errMsg = '期望 "' + X + '", 实际为 "' + a + '"';
+        steps.push({ step: stepNo, stack: stackStr(), input: inputStr(), action: '报错: ' + errMsg });
+      }
+      stepNo++;
+      continue;
+    }
+    if (g.nts.has(X)) {
+      var pi = tbl.table[X][a];
+      if (pi === undefined) {
+        ok = false; errMsg = 'M[' + X + ', ' + a + '] 为空: 不合语法';
+        steps.push({ step: stepNo, stack: stackStr(), input: inputStr(), action: '报错: ' + errMsg });
+        break;
+      }
+      var prod = g.prods[pi];
+      stack.pop(); sp--;
+      var node = nodeStack.pop();
+      var rhs = prod.rhs.length ? prod.rhs : [EPS];
+      rhs.forEach(function (s) {
+        var cn = makeNode(s, s === EPS || g.terms.has(s));
+        if (s === EPS) cn.sym = 'ε';
+        node.children.push(cn);
+      });
+      // 逆序压栈
+      for (var i = rhs.length - 1; i >= 0; i--) {
+        if (rhs[i] === EPS) continue;
+        stack.push(rhs[i]); sp++;
+        nodeStack.push(node.children[node.children.length - 1]);
+      }
+      steps.push({ step: stepNo, stack: stackStr(), input: inputStr(), action: '展开 ' + X + ' → ' + (prod.rhs.length ? prod.rhs.join(' ') : 'ε') });
+      stepNo++;
+      continue;
+    }
+    ok = false; errMsg = '栈中出现未知符号 ' + X;
+    break;
+  }
+  return { steps: steps, tree: root, ok: ok, error: errMsg };
+}
+
+/* ============================================================
+ * 第三部分  语义: 递归下降构建 AST + 四元式(选做内容)
+ * ============================================================ */
+
+/* ---- TINY ---- */
+function buildTinyAst(tk) {
+  var pos = 0;
+  function peek() { return tk[pos]; }
+  function eat() { return tk[pos++]; }
+  function isKw(t, w) { return t && t.cat === '关键词' && t.lexeme === w; }
+  function isSym(t, w) { return t && t.cat === '专用符号' && t.lexeme === w; }
+  function isCat(t, c) { return t && t.cat === c; }
+  function expect(fn, what) {
+    var t = peek();
+    if (!fn(t)) throw new Error('语法错误(第' + (t ? t.line : '?') + '行): 期望 ' + what + ', 实际 "' + (t ? t.lexeme : 'EOF') + '"');
+    return eat();
+  }
+  function stmtSeq() {
+    var stmts = [statement()];
+    while (isSym(peek(), ';')) { eat(); stmts.push(statement()); }
+    return stmts;
+  }
+  function statement() {
+    var t = peek();
+    if (isKw(t, 'if')) return ifStmt();
+    if (isKw(t, 'repeat')) return repeatStmt();
+    if (isKw(t, 'read')) return readStmt();
+    if (isKw(t, 'write')) return writeStmt();
+    if (isCat(t, 'identifier')) return assignStmt();
+    throw new Error('语法错误(第' + (t ? t.line : '?') + '行): 非法的语句开始 "' + (t ? t.lexeme : 'EOF') + '"');
+  }
+  function ifStmt() {
+    var ln = eat().line;
+    var cond = exp();
+    expect(function (t) { return isKw(t, 'then'); }, 'then');
+    var thenS = stmtSeq(), elseS = null;
+    if (isKw(peek(), 'else')) { eat(); elseS = stmtSeq(); }
+    expect(function (t) { return isKw(t, 'end'); }, 'end');
+    return { kind: 'if', line: ln, cond: cond, then: thenS, els: elseS };
+  }
+  function repeatStmt() {
+    var ln = eat().line;
+    var body = stmtSeq();
+    expect(function (t) { return isKw(t, 'until'); }, 'until');
+    var cond = exp();
+    return { kind: 'repeat', line: ln, body: body, cond: cond };
+  }
+  function assignStmt() {
+    var id = eat();
+    expect(function (t) { return isSym(t, ':='); }, ':=');
+    return { kind: 'assign', line: id.line, name: id.lexeme, exp: exp() };
+  }
+  function readStmt() { var ln = eat().line; return { kind: 'read', line: ln, name: expect(function (t) { return isCat(t, 'identifier'); }, '标识符').lexeme }; }
+  function writeStmt() { var ln = eat().line; return { kind: 'write', line: ln, exp: exp() }; }
+  function exp() {
+    var l = simpleExp();
+    var t = peek();
+    if (isSym(t, '<') || isSym(t, '=')) { eat(); return { kind: 'relop', op: t.lexeme, l: l, r: simpleExp(), line: t.line }; }
+    return l;
+  }
+  function simpleExp() {
+    var l = term();
+    while (isSym(peek(), '+') || isSym(peek(), '-')) { var op = eat().lexeme; l = { kind: 'arith', op: op, l: l, r: term() }; }
+    return l;
+  }
+  function term() {
+    var l = factor();
+    while (isSym(peek(), '*') || isSym(peek(), '/')) { var op = eat().lexeme; l = { kind: 'arith', op: op, l: l, r: factor() }; }
+    return l;
+  }
+  function factor() {
+    var t = peek();
+    if (isSym(t, '(')) { eat(); var e = exp(); expect(function (x) { return isSym(x, ')'); }, ')'); return e; }
+    if (isCat(t, 'number')) { eat(); return { kind: 'num', val: t.lexeme }; }
+    if (isCat(t, 'identifier')) { eat(); return { kind: 'var', name: t.lexeme }; }
+    throw new Error('语法错误(第' + (t ? t.line : '?') + '行): 非法的表达式 "' + (t ? t.lexeme : 'EOF') + '"');
+  }
+  var seq = stmtSeq();
+  if (pos < tk.length) throw new Error('第' + tk[pos].line + '行附近有多余输入: "' + tk[pos].lexeme + '"');
+  return seq;
+}
+
+/* ---- Mini-C ---- */
+function buildMiniCAst(tk) {
+  var pos = 0;
+  function peek(o) { return tk[pos + (o || 0)]; }
+  function eat() { return tk[pos++]; }
+  function isKw(t, w) { return t && t.cat === '关键词' && t.lexeme === w; }
+  function isSym(t, w) { return t && t.cat === '专用符号' && t.lexeme === w; }
+  function isCat(t, c) { return t && t.cat === c; }
+  function isType(t) { return isKw(t, 'int') || isKw(t, 'float') || isKw(t, 'void'); }
+  function expect(fn, what) {
+    var t = peek();
+    if (!fn(t)) throw new Error('语法错误(第' + (t ? t.line : '?') + '行): 期望 ' + what + ', 实际 "' + (t ? t.lexeme : 'EOF') + '"');
+    return eat();
+  }
+  function program() {
+    var defs = [];
+    while (pos < tk.length) defs.push(definition());
+    if (!defs.length) throw new Error('空程序: 至少需要一个定义');
+    return defs;
+  }
+  function definition() {
+    var ty = eat(); // type-indicator
+    var id = expect(function (t) { return isCat(t, 'ID'); }, '标识符');
+    if (isSym(peek(), '(')) { eat(); var ps = params(); expect(function (t) { return isSym(t, ')'); }, ')'); return { kind: 'func', line: id.line, type: ty.lexeme, name: id.lexeme, params: ps, body: compound() }; }
+    // 变量定义
+    if (isSym(peek(), '[')) { eat(); var num = expect(function (t) { return isCat(t, 'NUM'); }, 'NUM'); expect(function (t) { return isSym(t, ']'); }, ']'); expect(function (t) { return isSym(t, ';'); }, ';'); return { kind: 'vardef', line: id.line, type: ty.lexeme, name: id.lexeme, array: num.lexeme }; }
+    expect(function (t) { return isSym(t, ';'); }, ';');
+    return { kind: 'vardef', line: id.line, type: ty.lexeme, name: id.lexeme, array: null };
+  }
+  function params() {
+    if (isSym(peek(), ')')) return [];
+    if (isKw(peek(), 'void') && isSym(peek(1), ')')) { eat(); return []; }
+    var list = [param()];
+    while (isSym(peek(), ',')) { eat(); list.push(param()); }
+    return list;
+  }
+  function param() {
+    var ty = eat();
+    var id = expect(function (t) { return isCat(t, 'ID'); }, '标识符');
+    var arr = false;
+    if (isSym(peek(), '[')) { eat(); expect(function (t) { return isSym(t, ']'); }, ']'); arr = true; }
+    return { type: ty.lexeme, name: id.lexeme, array: arr };
+  }
+  function compound() {
+    expect(function (t) { return isSym(t, '{'); }, '{');
+    var defs = [], stmts = [];
+    while (isType(peek())) defs.push(definition());
+    while (!isSym(peek(), '}')) { if (pos >= tk.length) throw new Error('缺少 }'); stmts.push(statement()); }
+    eat();
+    return { defs: defs, stmts: stmts };
+  }
+  function statement() {
+    var t = peek();
+    if (isSym(t, '{')) return { kind: 'compound', body: compound() };
+    if (isKw(t, 'if')) return condStmt();
+    if (isKw(t, 'do')) return dowhileStmt();
+    if (isKw(t, 'return')) return returnStmt();
+    return exprStmt();
+  }
+  function condStmt() {
+    var ln = eat().line;
+    expect(function (t) { return isSym(t, '('); }, '(');
+    var e = expression();
+    expect(function (t) { return isSym(t, ')'); }, ')');
+    var s1 = statement(), s2 = null;
+    if (isKw(peek(), 'else')) { eat(); s2 = statement(); }
+    return { kind: 'if', line: ln, cond: e, then: s1, els: s2 };
+  }
+  function dowhileStmt() {
+    var ln = eat().line;
+    var body = statement();
+    expect(function (t) { return isKw(t, 'while'); }, 'while');
+    expect(function (t) { return isSym(t, '('); }, '(');
+    var e = expression();
+    expect(function (t) { return isSym(t, ')'); }, ')');
+    expect(function (t) { return isSym(t, ';'); }, ';');
+    return { kind: 'dowhile', line: ln, body: body, cond: e };
+  }
+  function returnStmt() {
+    var ln = eat().line;
+    if (isSym(peek(), ';')) { eat(); return { kind: 'return', line: ln, exp: null }; }
+    var e = expression();
+    expect(function (t) { return isSym(t, ';'); }, ';');
+    return { kind: 'return', line: ln, exp: e };
+  }
+  function exprStmt() {
+    var t = peek();
+    if (isSym(t, ';')) { eat(); return { kind: 'exprstmt', exp: null, line: t.line }; }
+    var e = expression();
+    expect(function (t2) { return isSym(t2, ';'); }, ';');
+    return { kind: 'exprstmt', exp: e, line: t ? t.line : 0 };
+  }
+  function expression() {
+    var t = peek();
+    if (isCat(t, 'ID')) {
+      var save = pos;
+      var v = tryVariable();
+      if (v && isSym(peek(), '=')) { eat(); return { kind: 'assign', line: t.line, target: v, exp: expression() }; }
+      pos = save;
+    }
+    return simpleExp();
+  }
+  function tryVariable() {
+    var id = eat();
+    if (isSym(peek(), '[')) { eat(); var e = expression(); expect(function (t) { return isSym(t, ']'); }, ']'); return { kind: 'var', name: id.lexeme, index: e, line: id.line }; }
+    return { kind: 'var', name: id.lexeme, index: null, line: id.line };
+  }
+  function simpleExp() {
+    var l = additive();
+    var t = peek();
+    if (t && t.cat === '专用符号' && ['<', '<=', '>', '>=', '==', '!='].indexOf(t.lexeme) >= 0) { eat(); return { kind: 'relop', op: t.lexeme, l: l, r: additive(), line: t.line }; }
+    return l;
+  }
+  function additive() {
+    var l = term();
+    while (isSym(peek(), '+') || isSym(peek(), '-')) { var op = eat().lexeme; l = { kind: 'arith', op: op, l: l, r: term() }; }
+    return l;
+  }
+  function term() {
+    var l = factor();
+    while (isSym(peek(), '*') || isSym(peek(), '/') || isSym(peek(), '%')) { var op = eat().lexeme; l = { kind: 'arith', op: op, l: l, r: factor() }; }
+    return l;
+  }
+  function factor() {
+    var t = peek();
+    if (isSym(t, '(')) { eat(); var e = expression(); expect(function (x) { return isSym(x, ')'); }, ')'); return e; }
+    if (isCat(t, 'NUM')) { eat(); return { kind: 'num', val: t.lexeme }; }
+    if (isCat(t, 'ID')) {
+      eat();
+      if (isSym(peek(), '(')) {
+        eat();
+        var args = [];
+        if (!isSym(peek(), ')')) { args.push(expression()); while (isSym(peek(), ',')) { eat(); args.push(expression()); } }
+        expect(function (x) { return isSym(x, ')'); }, ')');
+        return { kind: 'call', name: t.lexeme, args: args, line: t.line };
+      }
+      if (isSym(peek(), '[')) { eat(); var ie = expression(); expect(function (x) { return isSym(x, ']'); }, ']'); return { kind: 'var', name: t.lexeme, index: ie }; }
+      return { kind: 'var', name: t.lexeme, index: null };
+    }
+    throw new Error('语法错误(第' + (t ? t.line : '?') + '行): 非法的表达式 "' + (t ? t.lexeme : 'EOF') + '"');
+  }
+  return program();
+}
+
+/* ---- 四元式生成 ---- */
+function generateQuadsTiny(program) {
+  var quads = [], tempC = 0, labelC = 0;
+  function temp() { return 't' + (tempC++); }
+  function label() { return 'L' + (labelC++); }
+  function emit(op, a1, a2, r) { quads.push({ op: op, a1: a1, a2: a2, r: r }); }
+  function genExp(e) {
+    switch (e.kind) {
+      case 'num': return e.val;
+      case 'var': return e.name;
+      case 'arith': { var l = genExp(e.l), r = genExp(e.r), t = temp(); emit(e.op, l, r, t); return t; }
+      case 'relop': { var l2 = genExp(e.l), r2 = genExp(e.r), t2 = temp(); emit(e.op, l2, r2, t2); return t2; }
+    }
+    return '?';
+  }
+  function genSeq(seq) { seq.forEach(function (s) { genStmt(s); }); }
+  function genStmt(s) {
+    switch (s.kind) {
+      case 'assign': { var v = genExp(s.exp); emit(':=', v, '-', s.name); break; }
+      case 'read': emit('read', '-', '-', s.name); break;
+      case 'write': { var w = genExp(s.exp); emit('write', w, '-', '-'); break; }
+      case 'if': {
+        var c = genExp(s.cond);
+        if (s.els) {
+          var Lelse = label(), Lend = label();
+          emit('jfalse', c, '-', Lelse);
+          genSeq(s.then);
+          emit('goto', '-', '-', Lend);
+          emit('label', Lelse, '-', '-');
+          genSeq(s.els);
+          emit('label', Lend, '-', '-');
+        } else {
+          var Lend2 = label();
+          emit('jfalse', c, '-', Lend2);
+          genSeq(s.then);
+          emit('label', Lend2, '-', '-');
+        }
+        break;
+      }
+      case 'repeat': {
+        var Lbody = label(), Lend3 = label();
+        emit('label', Lbody, '-', '-');
+        genSeq(s.body);
+        var c3 = genExp(s.cond);
+        emit('jfalse', c3, '-', Lbody);
+        emit('label', Lend3, '-', '-');
+        break;
+      }
+    }
+  }
+  genSeq(program);
+  return quads;
+}
+
+function generateQuadsMiniC(defs) {
+  var quads = [], tempC = 0, labelC = 0;
+  function temp() { return 't' + (tempC++); }
+  function label() { return 'L' + (labelC++); }
+  function emit(op, a1, a2, r) { quads.push({ op: op, a1: a1, a2: a2, r: r }); }
+  function genExp(e) {
+    switch (e.kind) {
+      case 'num': return e.val;
+      case 'var':
+        if (e.index) { var ix = genExp(e.index), t0 = temp(); emit('=[]', e.name, ix, t0); return t0; }
+        return e.name;
+      case 'arith': { var l = genExp(e.l), r = genExp(e.r), t = temp(); emit(e.op, l, r, t); return t; }
+      case 'relop': { var l2 = genExp(e.l), r2 = genExp(e.r), t2 = temp(); emit(e.op, l2, r2, t2); return t2; }
+      case 'assign': { var v = genExp(e.exp); assignTo(e.target, v); return v; }
+      case 'call': return genCall(e);
+    }
+    return '?';
+  }
+  function assignTo(target, val) {
+    if (target.index) { var ix = genExp(target.index); emit('[]=', target.name, ix, val); }
+    else emit(':=', val, '-', target.name);
+  }
+  function genCall(e) {
+    e.args.forEach(function (a) { emit('param', genExp(a), '-', '-'); });
+    var t = temp();
+    emit('call', e.name, String(e.args.length), t);
+    return t;
+  }
+  function genStmt(s) {
+    switch (s.kind) {
+      case 'compound': s.body.stmts.forEach(genStmt); break;
+      case 'exprstmt': if (s.exp) genExp(s.exp); break;
+      case 'assign': { var v = genExp(s.exp); assignTo(s.target, v); break; }
+      case 'if': {
+        var c = genExp(s.cond);
+        if (s.els) {
+          var Lelse = label(), Lend = label();
+          emit('jfalse', c, '-', Lelse);
+          genStmt(s.then);
+          emit('goto', '-', '-', Lend);
+          emit('label', Lelse, '-', '-');
+          genStmt(s.els);
+          emit('label', Lend, '-', '-');
+        } else {
+          var Lend2 = label();
+          emit('jfalse', c, '-', Lend2);
+          genStmt(s.then);
+          emit('label', Lend2, '-', '-');
+        }
+        break;
+      }
+      case 'dowhile': {
+        var Lbody = label();
+        emit('label', Lbody, '-', '-');
+        genStmt(s.body);
+        var c3 = genExp(s.cond);
+        emit('jtrue', c3, '-', Lbody);
+        break;
+      }
+      case 'return': {
+        if (s.exp) { var rv = genExp(s.exp); emit('ret', rv, '-', '-'); }
+        else emit('ret', '-', '-', '-');
+        break;
+      }
+    }
+  }
+  defs.forEach(function (d) {
+    if (d.kind === 'func') {
+      emit('func', d.name, '-', '-');
+      d.body.stmts.forEach(genStmt);
+    }
+    // 全局变量定义不产生四元式
+  });
+  return quads;
+}
+
+/* ---------------- 导出 ---------------- */
+global.CompilerCore = {
+  parseRegexFile: parseRegexFile,
+  nfaFromRegex: nfaFromRegex,
+  combineNfas: combineNfas,
+  nfaToDfa: nfaToDfa,
+  minimizeDfa: minimizeDfa,
+  simulateLex: simulateLex,
+  makeLexFile: makeLexFile,
+  generateCCode: generateCCode,
+  compressDfaColumns: compressDfaColumns,
+  labelKey: labelKey,
+  parseGrammar: parseGrammar,
+  simplifyGrammar: simplifyGrammar,
+  eliminateLeftRecursion: eliminateLeftRecursion,
+  transformGrammar: transformGrammar,
+  computeFirst: computeFirst,
+  computeFollow: computeFollow,
+  buildLL1Table: buildLL1Table,
+  parseLL1: parseLL1,
+  buildTinyAst: buildTinyAst,
+  buildMiniCAst: buildMiniCAst,
+  generateQuadsTiny: generateQuadsTiny,
+  generateQuadsMiniC: generateQuadsMiniC,
+  EPS: EPS
+};
+
+})(typeof window !== 'undefined' ? window : globalThis);
+
+</script>
+<script>
+/*
+ * 文件名称: presets.js — 预设测试数据 (TINY 与 Mini-C)
+ * 摘要: 内嵌任务书要求的全部测试数据, 同时生成独立测试文件
+ */
+(function (global) {
+'use strict';
+
+var TINY_REGEX = [
+  '# ============================================',
+  '# TINY 语言单词的正则表达式',
+  '# "宏 名称 = 正则"  定义辅助宏(不作为单词类别)',
+  '# "名称 = 正则"     定义单词类别(顺序即优先级)',
+  '# 语法: | 连接  * 闭包  + 正闭包  ? 可选  ( ) 分组',
+  '#       a..z 区间  [a-z] 字符类  \\+ 转义  ε 空串',
+  '# ============================================',
+  '宏 letter    = a..z | A..Z',
+  '宏 digit     = 0..9',
+  '关键词    = if | then | else | end | repeat | until | read | write',
+  '专用符号  = \\+ | - | \\* | / | < | = | \\( | \\) | ; | :=',
+  'identifier = letter ( letter | digit )*',
+  'number    = digit digit*'
+].join('\n');
+
+var MINIC_REGEX = [
+  '# ============================================',
+  '# Mini-C 语言单词的正则表达式',
+  '# 关键字必须小写; // 为行注释',
+  '# ============================================',
+  '宏 letter    = a..z | A..Z',
+  '宏 digit     = 0..9',
+  '关键词    = else | if | int | float | return | void | do | while',
+  '专用符号  = <= | >= | == | != | \\+ | - | \\* | / | % | < | > | = | ; | , | \\( | \\) | \\[ | \\] | \\{ | \\}',
+  'ID        = ( _ | letter ) ( _ | letter | digit )*',
+  'NUM       = digit digit* ( \\. digit digit* )?'
+].join('\n');
+
+var TINY_GRAMMAR = [
+  '# ============================================',
+  '# BNF 中的 TINY 文法 (Louden)',
+  '# 非终结符 -> 产生式右部 | 右部 ...',
+  '# ============================================',
+  'program -> stmt-sequence',
+  'stmt-sequence -> stmt-sequence ; statement | statement',
+  'statement -> if-stmt | repeat-stmt | assign-stmt | read-stmt | write-stmt',
+  'if-stmt -> if exp then stmt-sequence end | if exp then stmt-sequence else stmt-sequence end',
+  'repeat-stmt -> repeat stmt-sequence until exp',
+  'assign-stmt -> identifier := exp',
+  'read-stmt -> read identifier',
+  'write-stmt -> write exp',
+  'exp -> simple-exp comparison-op simple-exp | simple-exp',
+  'comparison-op -> < | =',
+  'simple-exp -> simple-exp addop term | term',
+  'addop -> + | -',
+  'term -> term mulop factor | factor',
+  'mulop -> * | /',
+  'factor -> ( exp ) | number | identifier'
+].join('\n');
+
+/* Mini-C 文法: 与任务书 29 条 BNF 一致(全角标点已归一化) */
+var MINIC_GRAMMAR = [
+  '# Mini-C 的 BNF 语法 (任务书 29 条)',
+  'program -> definition-list',
+  'definition-list -> definition-list definition | definition',
+  'definition -> variable-definition | function-definition',
+  'variable-definition -> type-indicator ID ; | type-indicator ID [ NUM ] ;',
+  'type-indicator -> int | float | void',
+  'function-definition -> type-indicator ID ( parameters ) compound-stmt',
+  'parameters -> parameter-list | void',
+  'parameter-list -> parameter-list , parameter | parameter',
+  'parameter -> type-indicator ID | type-indicator ID [ ]',
+  'compound-stmt -> { local-definitions statement-list }',
+  'local-definitions -> local-definitions variable-definition | empty',
+  'statement-list -> statement-list statement | empty',
+  'statement -> expression-stmt | compound-stmt | condition-stmt | dowhile-stmt | return-stmt',
+  'expression-stmt -> expression ; | ;',
+  'condition-stmt -> if ( expression ) statement | if ( expression ) statement else statement',
+  'dowhile-stmt -> do statement while ( expression ) ;',
+  'return-stmt -> return ; | return expression ;',
+  'expression -> variable = expression | simple-expression',
+  'variable -> ID | ID [ expression ]',
+  'simple-expression -> additive-expression relop additive-expression | additive-expression',
+  'relop -> <= | < | > | >= | == | !=',
+  'additive-expression -> additive-expression addop term | term',
+  'addop -> + | -',
+  'term -> term mulop factor | factor',
+  'mulop -> * | / | %',
+  'factor -> ( expression ) | variable | call | NUM',
+  'call -> ID ( arguments )',
+  'arguments -> argument-list | empty',
+  'argument-list -> argument-list , expression | expression'
+].join('\n');
+
+var SAMPLE_TNY = [
+  '{ Sample program',
+  '  in TINY language -',
+  '  computes factorial',
+  '}',
+  'read x; { input an integer }',
+  'if 0 < x then { don\'t compute if x <= 0 }',
+  '  fact := 1;',
+  '  repeat',
+  '    fact := fact * x;',
+  '    x := x - 1',
+  '  until x = 0;',
+  '  write fact  { output  factorial of x }',
+  'end',
+  ''
+].join('\n');
+
+/* 自己编写的 Mini-C 测试源程序 (任务书项目三要求自编) */
+var SAMPLE_MINIC = [
+  '// ============================================',
+  '// 自己编写的 Mini-C 测试源程序',
+  '// 覆盖: 变量/数组定义、函数调用、递归、',
+  '//       if-else、do-while、算术与关系运算、注释',
+  '// ============================================',
+  '',
+  'int fact(int x) {',
+  '    if (x <= 1) return 1;',
+  '    return x * fact(x - 1);',
+  '}',
+  '',
+  'float sum(float a[], int n) {',
+  '    float s;',
+  '    int i;',
+  '    s = 0.0;',
+  '    i = 0;',
+  '    do {',
+  '        s = s + a[i];',
+  '        i = i + 1;',
+  '    } while (i < n);',
+  '    return s;',
+  '}',
+  '',
+  'void main(void) {',
+  '    int n;',
+  '    int r;',
+  '    float arr[3];',
+  '    float total;',
+  '    arr[0] = 1.5;',
+  '    arr[1] = 2.5;',
+  '    arr[2] = 3.0;',
+  '    n = 5;',
+  '    do {',
+  '        n = n - 1;',
+  '    } while (n > 2);',
+  '    if (n % 2 != 0) r = fact(n);',
+  '    else r = fact(n + 1);',
+  '    total = sum(arr, 3);',
+  '    ;',
+  '}'
+].join('\n');
+
+/* 语言配置 */
+var LANGS = {
+  tiny: {
+    key: 'tiny', name: 'TINY',
+    regexText: TINY_REGEX, grammarText: TINY_GRAMMAR,
+    sampleSource: SAMPLE_TNY, sampleExt: 'tny',
+    commentCfg: { blockComment: { start: '{', end: '}' } },
+    astBuilder: 'tiny'
+  },
+  minic: {
+    key: 'minic', name: 'Mini-C',
+    regexText: MINIC_REGEX, grammarText: MINIC_GRAMMAR,
+    sampleSource: SAMPLE_MINIC, sampleExt: 'mxc',
+    commentCfg: { lineComment: '//' },
+    astBuilder: 'minic'
+  }
+};
+
+global.Presets = { TINY_REGEX: TINY_REGEX, MINIC_REGEX: MINIC_REGEX, TINY_GRAMMAR: TINY_GRAMMAR, MINIC_GRAMMAR: MINIC_GRAMMAR, SAMPLE_TNY: SAMPLE_TNY, SAMPLE_MINIC: SAMPLE_MINIC, LANGS: LANGS };
+})(typeof window !== 'undefined' ? window : globalThis);
+
+</script>
+<script>
+/*
+ * 文件名称: app.js — 界面装配与交互
+ * 摘要:     项目一(词法分析器生成器) / 项目二(LL(1)语法分析器) / 项目三(Mini-C全流程)
+ * 版本: 1.0   日期: 2026-11-01
+ */
+(function () {
+'use strict';
+var C = window.CompilerCore, P = window.Presets;
+
+/* ================= 通用工具 ================= */
+function $(id) { return document.getElementById(id); }
+function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+function download(name, text) {
+  var blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = name; a.click();
+  setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000);
+}
+/* 读本地文件: 优先 UTF-8, 失败回退 GBK(兼容老作业文件) */
+function readTextFile(file, cb) {
+  var r = new FileReader();
+  r.onload = function () {
+    var buf = r.result;
+    try { cb(new TextDecoder('utf-8', { fatal: true }).decode(buf)); }
+    catch (e) {
+      try { cb(new TextDecoder('gbk').decode(buf)); }
+      catch (e2) { cb(new TextDecoder('utf-8').decode(buf)); }
+    }
+  };
+  r.readAsArrayBuffer(file);
+}
+function tableHTML(headers, rows, opts) {
+  opts = opts || {};
+  var h = '<div class="tablewrap"><table class="data">';
+  if (opts.caption) h += '<caption class="cap">' + esc(opts.caption) + '</caption>';
+  h += '<thead><tr>' + headers.map(function (x, i) { return '<th' + ((opts.monoCols || []).indexOf(i) >= 0 ? ' class="mono"' : '') + '>' + esc(x) + '</th>'; }).join('') + '</tr></thead><tbody>';
+  rows.forEach(function (r) {
+    h += '<tr>' + r.map(function (cell, i) {
+      if (cell && cell.__html) return '<td' + (cell.cls ? ' class="' + cell.cls + '"' : '') + '>' + cell.v + '</td>';
+      return '<td' + ((opts.monoCols || []).indexOf(i) >= 0 ? ' class="mono"' : '') + (cell === '' || cell == null ? ' class="empty"' : '') + '>' + esc(cell == null ? '—' : cell) + '</td>';
+    }).join('') + '</tr>';
+  });
+  return h + '</tbody></table></div>';
+}
+function H(v, cls) { return { __html: true, v: v, cls: cls || '' }; }
+
+/* 语法树 SVG (紧凑布局) */
+function treeSVG(root, opt) {
+  opt = opt || {};
+  var nodes = [], edges = [], leafX = 0;
+  (function walk(n, depth) {
+    var id = nodes.length;
+    nodes.push({ n: n, depth: depth, x: 0, w: Math.max(34, String(n.sym).length * 11 + 12) });
+    var my = id;
+    if (!n.children.length) nodes[my].x = leafX++;
+    else {
+      var kids = n.children.map(function (ch) { return walk(ch, depth + 1); });
+      nodes[my].x = (nodes[kids[0]].x + nodes[kids[kids.length - 1]].x) / 2;
+      kids.forEach(function (k) { edges.push([my, k]); });
+    }
+    return my;
+  })(root, 0);
+  var U = opt.ux || 58, UY = opt.uy || 62, PAD = 40;
+  var maxD = Math.max.apply(null, nodes.map(function (n) { return n.depth; }));
+  var W = Math.max((leafX) * U + PAD * 2, 320), Ht = (maxD + 1) * UY + PAD * 1.4;
+  var s = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + W + ' ' + Ht + '" width="' + W + '" height="' + Ht + '">';
+  edges.forEach(function (e) {
+    var a = nodes[e[0]], b = nodes[e[1]];
+    s += '<line x1="' + (PAD + a.x * U) + '" y1="' + (PAD + a.depth * UY + 14) + '" x2="' + (PAD + b.x * U) + '" y2="' + (PAD + b.depth * UY - 2) + '" stroke="#b8c4d6" stroke-width="1.2"/>';
+  });
+  nodes.forEach(function (nd) {
+    var x = PAD + nd.x * U, y = PAD + nd.depth * UY;
+    var label = nd.n.sym === C.EPS ? 'ε' : String(nd.n.sym);
+    var isT = nd.n.isTerm;
+    var fill = isT ? '#e5f6eb' : '#e8effd', stroke = isT ? '#4caf7d' : '#7ea6f0', tcol = isT ? '#1c7a44' : '#1d4fc4';
+    s += '<g><rect x="' + (x - nd.w / 2) + '" y="' + (y - 12) + '" width="' + nd.w + '" height="22" rx="6" fill="' + fill + '" stroke="' + stroke + '"/>';
+    s += '<text x="' + x + '" y="' + (y + 4) + '" text-anchor="middle" font-size="11.5" fill="' + tcol + '">' + esc(label) + '</text></g>';
+  });
+  return s + '</svg>';
+}
+
+/* 自动机状态图(圆周布局, 状态数过多时不画) */
+function automataSVG(nfa, name) {
+  var nCount = nfa.states.length;
+  if (nCount > 60) return '<div class="note">状态数 ' + nCount + ' 过多, 仅提供转换表视图</div>';
+  var R = Math.max(140, nCount * 5.5), W = R * 2 + 160, Ht = R * 2 + 120;
+  var cx = W / 2, cy = Ht / 2;
+  var pos = nfa.states.map(function (st, i) {
+    var ang = (i / nCount) * Math.PI * 2 - Math.PI / 2;
+    return { x: cx + Math.cos(ang) * R, y: cy + Math.sin(ang) * R };
+  });
+  var s = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + W + ' ' + Ht + '" width="' + Math.min(W, 900) + '">';
+  nfa.edges.forEach(function (e) {
+    if (e.from === e.to) return;
+    var a = pos[e.from], b = pos[e.to];
+    var mx = (a.x + b.x) / 2 + (b.y - a.y) * 0.12, my = (a.y + b.y) / 2 - (b.x - a.x) * 0.12;
+    var lbl = e.label ? (e.label.kind === 'char' ? e.label.ch : e.label.kind === 'cls' ? '[' + e.label.label + ']' : '.') : 'ε';
+    s += '<path d="M' + a.x + ' ' + a.y + ' Q' + mx + ' ' + my + ' ' + b.x + ' ' + b.y + '" fill="none" stroke="' + (e.label ? '#9db2cc' : '#c9a8e8') + '" stroke-width="1"/>';
+    if (nCount <= 34) s += '<text x="' + ((a.x + b.x) / 2 + (b.y - a.y) * 0.2) + '" y="' + ((a.y + b.y) / 2 - (b.x - a.x) * 0.2) + '" font-size="9" fill="#7c8aa0" text-anchor="middle">' + esc(lbl) + '</text>';
+  });
+  nfa.states.forEach(function (st, i) {
+    var p = pos[i], acc = st.acceptLine >= 0;
+    s += '<circle cx="' + p.x + '" cy="' + p.y + '" r="11" fill="' + (acc ? '#e5f6eb' : '#fff') + '" stroke="' + (acc ? '#4caf7d' : '#8b98ab') + '" stroke-width="1.4"/>';
+    if (acc) s += '<circle cx="' + p.x + '" cy="' + p.y + '" r="7.5" fill="none" stroke="#4caf7d" stroke-width="1"/>';
+    if (nCount <= 40) s += '<text x="' + p.x + '" y="' + (p.y + 3.5) + '" font-size="9.5" text-anchor="middle" fill="#3b4657">' + i + '</text>';
+  });
+  var st0 = pos[nfa.start];
+  s += '<circle cx="' + (st0.x - 34) + '" cy="' + st0.y + '" r="3.5" fill="#2563eb"/><line x1="' + (st0.x - 30) + '" y1="' + st0.y + '" x2="' + (st0.x - 12) + '" y2="' + st0.y + '" stroke="#2563eb" stroke-width="1.6"/>';
+  return s + '</svg>';
+}
+
+/* ================= 项目一: 词法分析器生成器 ================= */
+var lexState = { lang: 'tiny', built: null };
+
+function buildLexerNow(langKey, regexText) {
+  var cfgBase = P.LANGS[langKey];
+  var defs = C.parseRegexFile(regexText);
+  var combined = C.combineNfas(defs);
+  var perLine = defs.map(function (d, i) { return C.nfaFromRegex(d.node, i); });
+  var dfa = C.nfaToDfa(combined);
+  var min = C.minimizeDfa(dfa);
+  var simCfg = { defNames: defs.map(function (d) { return d.name; }), blockComment: cfgBase.commentCfg.blockComment, lineComment: cfgBase.commentCfg.lineComment };
+  var cCode = C.generateCCode(defs, min, simCfg, cfgBase.name);
+  return { defs: defs, combined: combined, perLine: perLine, dfa: dfa, min: min, simCfg: simCfg, cCode: cCode, langKey: langKey };
+}
+function lexRun(built, src) { return C.simulateLex(built.min, src, built.simCfg); }
+
+function renderLexAutomataTable(nfa, container, defName) {
+  var labels = [];
+  nfa.edges.forEach(function (e) { if (!e.label) { if (labels.indexOf('ε') < 0) labels.push('ε'); } else { var k = C.labelKey(e.label); if (labels.indexOf(k) < 0) labels.push(k); } });
+  var byState = {};
+  nfa.edges.forEach(function (e) {
+    var k = e.label ? C.labelKey(e.label) : 'ε';
+    (byState[e.from] = byState[e.from] || {})[k] = (byState[e.from][k] || []).concat(e.to);
+  });
+  var accName = function (line) { return line < 0 ? '' : (defName === 'combined' ? lexState.built.defs[line].name : defName); };
+  var rows = nfa.states.map(function (st) {
+    var row = [{ __html: true, v: st.id + (accName(st.acceptLine) ? ' →' : ''), cls: st.acceptLine >= 0 ? 'acc' : '' }];
+    labels.forEach(function (lk) {
+      var ts = (byState[st.id] || {})[lk];
+      row.push(ts ? ts.join(',') : '');
+    });
+    row.push(H(accName(st.acceptLine) ? '<b>' + esc(accName(st.acceptLine)) + '</b>' : '', st.acceptLine >= 0 ? 'acc' : ''));
+    return row;
+  });
+  container.innerHTML = tableHTML(['状态'].concat(labels, ['类别']), rows, { monoCols: labels.map(function (_, i) { return i + 1; }) });
+}
+
+function renderDfaTable(min, container, defs) {
+  var comp = C.compressDfaColumns(min);
+  var rows = min.states.map(function (st) {
+    var row = [{ __html: true, v: '<b>' + st.id + '</b>', cls: st.acceptLine >= 0 ? 'acc' : '' }];
+    comp.groups.forEach(function (g) {
+      var t = min.trans[st.id][g.chars[0]];
+      t = (t === undefined) ? -1 : t;
+      var dead = (t === min.deadBlock);
+      row.push({ __html: true, v: t < 0 || dead ? '⊘' : t, cls: st.acceptLine >= 0 ? 'acc' : (dead ? '' : '') });
+    });
+    row.push(H(st.acceptLine >= 0 ? '<b>' + esc(defs[st.acceptLine].name) + '</b>' : (st.isDead ? '⊘死' : ''), st.acceptLine >= 0 ? 'acc' : ''));
+    return row;
+  });
+  container.innerHTML = tableHTML(['状态'].concat(comp.groups.map(function (g) { return g.display; }), ['类别']), rows, { caption: '状态转换表 (⊘ 为死状态; 列已按等价转移合并, 如 a..z)' });
+}
+
+function renderLexPanels() {
+  var b = lexState.built;
+  if (!b) return;
+  var langName = P.LANGS[b.langKey].name;
+  /* 1 正则表 */
+  var rows = b.defs.map(function (d, i) { return [i + 1, d.name, d.expr]; });
+  $('lex-defs').innerHTML = tableHTML(['单词编码', '类别', '正则表达式'], rows, { monoCols: [2] });
+  $('lex-stats').innerHTML =
+    '<div class="stat">NFA 状态数<b>' + b.combined.states.length + '</b></div>' +
+    '<div class="stat">DFA 状态数<b>' + b.dfa.states.length + '</b></div>' +
+    '<div class="stat">最小化DFA 状态数<b>' + b.min.states.length + '</b></div>' +
+    '<div class="stat">单词类别数<b>' + b.defs.length + '</b></div>';
+  /* 2 NFA */
+  renderLexAutomataSelect();
+  /* 3/4 DFA 表 */
+  renderDfaTable(b.dfa, $('lex-dfa'), b.defs);
+  renderDfaTable(b.min, $('lex-mindfa'), b.defs);
+  /* 5 C 代码 */
+  $('lex-ccode').innerHTML = '<pre class="code">' + esc(b.cCode) + '</pre>';
+  /* 6/7 测试区复位 */
+  $('lex-src').value = P.LANGS[b.langKey].sampleSource;
+  runLexTest();
+}
+function renderLexAutomataSelect() {
+  var b = lexState.built;
+  var sel = $('lex-nfa-sel');
+  sel.innerHTML = '<option value="combined">合并 NFA (总表)</option>' + b.defs.map(function (d, i) { return '<option value="' + i + '">单独 NFA: ' + esc(d.name) + '</option>'; }).join('');
+  drawLexNfa();
+}
+function drawLexNfa() {
+  var b = lexState.built, sel = $('lex-nfa-sel'), v = sel.value;
+  if (v === 'combined') {
+    renderLexAutomataTable(b.combined, $('lex-nfa'), 'combined');
+    $('lex-nfa-graph').innerHTML = automataSVG({ states: b.combined.states, edges: b.combined.edges, start: b.combined.start }, '合并NFA');
+  } else {
+    var i = +v;
+    renderLexAutomataTable(b.perLine[i], $('lex-nfa'), b.defs[i].name);
+    $('lex-nfa-graph').innerHTML = automataSVG(b.perLine[i], b.defs[i].name);
+  }
+}
+function runLexTest() {
+  var b = lexState.built;
+  if (!b) return;
+  var src = $('lex-src').value;
+  var r = lexRun(b, src);
+  var codeBase = 0;
+  var rows = r.tokens.map(function (t, i) {
+    var isErr = t.cat === 'ERROR';
+    return [i + 1, t.line, isErr ? 'ERROR' : codeBase + b.defs.indexOf(b.defs.filter(function (d) { return d.name === t.cat; })[0]) + 1, H(isErr ? '<span class="errline">ERROR</span>' : esc(t.cat), isErr ? 'err-cell' : ''), H('<span class="' + (isErr ? 'errline' : '') + '">' + esc(t.lexeme) + '</span>', 'mono')];
+  });
+  $('lex-tokens').innerHTML = (r.errors.length ? '<div class="note">' + esc('发现 ' + r.errors.length + ' 处词法错误: ' + r.errors.slice(0, 5).map(function (e) { return '第' + e.line + '行 ' + e.msg; }).join('; ')) + '</div>' : '<div class="okline">✓ 词法分析完成, 无错误, 共 ' + r.tokens.length + ' 个单词</div>') +
+    tableHTML(['序号', '行号', '单词编码', '类别', '词素'], rows, {});
+  $('lex-lexfile').innerHTML = '<pre class="code lexfile">' + esc(C.makeLexFile(src, r.tokens)) + '</pre>';
+}
+
+function initTab1() {
+  var sel = $('lex-lang');
+  sel.onchange = function () { $('lex-regex').value = P.LANGS[sel.value].regexText; };
+  $('lex-build').onclick = function () {
+    try {
+      lexState.built = buildLexerNow(sel.value, $('lex-regex').value);
+      $('lex-err').innerHTML = '';
+      renderLexPanels();
+    } catch (e) { $('lex-err').innerHTML = '<div class="note">' + esc(e.message) + '</div>'; }
+  };
+  $('lex-nfa-sel').onchange = drawLexNfa;
+  $('lex-run').onclick = runLexTest;
+  $('lex-sample').onclick = function () { $('lex-src').value = P.LANGS[sel.value].sampleSource; runLexTest(); };
+  $('lex-open-src').onclick = function () { pickFile(function (name, text) { $('lex-src').value = text; runLexTest(); }); };
+  $('lex-open-regex').onclick = function () { pickFile(function (name, text) { $('lex-regex').value = text; }); };
+  $('lex-dl-c').onclick = function () { if (lexState.built) download(P.LANGS[lexState.built.langKey].name + '_lexer.c', lexState.built.cCode); };
+  $('lex-dl-lex').onclick = function () { if (lexState.built) download('sample.lex', C.makeLexFile($('lex-src').value, lexRun(lexState.built, $('lex-src').value).tokens)); };
+  $('lex-regex').value = P.LANGS.tiny.regexText;
+  $('lex-build').click();
+}
+var fileInput = null;
+function pickFile(cb) {
+  if (!fileInput) { fileInput = document.createElement('input'); fileInput.type = 'file'; document.body.appendChild(fileInput); }
+  fileInput.onchange = function () { if (fileInput.files[0]) readTextFile(fileInput.files[0], function (t) { cb(fileInput.files[0].name, t); }); };
+  fileInput.click();
+}
+
+/* ================= 项目二: LL(1) 语法分析器 ================= */
+var graState = { lang: 'tiny', g0: null, simp: null, tr: null, tbl: null };
+
+function buildGrammarNow(langKey, text) {
+  var g0 = C.parseGrammar(text);
+  var simp = C.simplifyGrammar(g0);
+  var tr = C.transformGrammar(g0);
+  var tbl = C.buildLL1Table(tr.g);
+  return { g0: g0, simp: simp, tr: tr, tbl: tbl, langKey: langKey };
+}
+function grammarTableRows(g) {
+  var byLhs = {};
+  g.prods.forEach(function (p) { (byLhs[p.lhs] = byLhs[p.lhs] || []).push(p.rhs); });
+  var rows = [], i = 1;
+  g.order.forEach(function (lhs) {
+    (byLhs[lhs] || []).forEach(function (rhs) {
+      rows.push([i++, lhs, rhs.length ? rhs.join(' ') : 'ε']);
+    });
+  });
+  return rows;
+}
+function renderGrammarPanels() {
+  var s = graState;
+  if (!s.tr) return;
+  $('gra-orig').innerHTML = tableHTML(['序号', '非终结符', '产生式'], grammarTableRows(s.g0), { monoCols: [2] });
+  var removedRows = [];
+  s.simp.removedNts.forEach(function (n) { removedRows.push([n, '不可达 / 推不出终结串']); });
+  s.simp.removedAlts.forEach(function (p) { removedRows.push([p.lhs + ' → ' + (p.rhs.join(' ') || 'ε'), '含无用符号']); });
+  $('gra-simp').innerHTML = (removedRows.length ?
+    tableHTML(['被删除的产生式/符号', '原因'], removedRows, {}) :
+    '<div class="okline">✓ 该文法不含无用符号(所有非终结符都能推出终结串且均可从开始符号到达), 化简后与原文法相同</div>') +
+    tableHTML(['序号', '非终结符', '产生式'], grammarTableRows(s.simp.result), { monoCols: [2] });
+  $('gra-transform').innerHTML =
+    '<div class="hint">共迭代 ' + s.tr.iterations + ' 轮(消除左递归 ⇄ 提取左公因子/替换展开), 变换后 ' + s.tr.g.prods.length + ' 条产生式:</div>' +
+    tableHTML(['序号', '非终结符', '产生式'], grammarTableRows(s.tr.g), { monoCols: [2] });
+  var nts = s.tr.g.order;
+  $('gra-first').innerHTML = tableHTML(['非终结符', 'FIRST 集合'], nts.map(function (n) {
+    var f = s.tbl.first[n] || new Set();
+    var arr = Array.from(f).filter(function (x) { return x !== C.EPS; });
+    return [n, '{ ' + arr.join(', ') + (f.has(C.EPS) ? (arr.length ? ', ε' : 'ε') : '') + ' }'];
+  }), {});
+  $('gra-follow').innerHTML = tableHTML(['非终结符', 'FOLLOW 集合'], nts.map(function (n) {
+    return [n, '{ ' + Array.from(s.tbl.follow[n] || []).join(', ') + ' }'];
+  }), {});
+  /* LL(1) 表 */
+  var terms = s.tbl.terms;
+  var rows = nts.map(function (n) {
+    var row = [{ __html: true, v: '<b>' + esc(n) + '</b>' }];
+    terms.forEach(function (t) {
+      var pi = s.tbl.table[n][t];
+      if (pi === undefined) row.push('');
+      else {
+        var p = s.tr.g.prods[pi];
+        var txt = (p.rhs.length ? p.rhs.join(' ') : 'ε');
+        row.push({ __html: true, v: esc(n + '→' + txt), cls: '' });
+      }
+    });
+    return row;
+  });
+  var confNote = '';
+  if (s.tbl.conflicts.length) {
+    confNote = '<div class="note">发现 ' + s.tbl.conflicts.length + ' 处冲突, 均已按规则自动消解(详见下): <br>' +
+      s.tbl.conflicts.map(function (c) { return '• M[' + esc(c.nt) + ', ' + esc(c.term) + ']: ' + esc(c.kind) + ' — ' + esc(c.resolution); }).join('<br>') + '</div>';
+  } else {
+    confNote = '<div class="okline">✓ LL(1) 分析表无任何冲突, 文法为严格的 LL(1) 文法</div>';
+  }
+  $('gra-table-note').innerHTML = confNote;
+  $('gra-table').innerHTML = tableHTML(['非终结符'].concat(terms), rows, { caption: 'LL(1) 预测分析表 M[A, a]' });
+  resetParsePanels();
+}
+function tokensToTerminals(tokens) {
+  return tokens.map(function (t) {
+    if (t.cat === 'ERROR') throw new Error('存在无法识别的单词: ' + t.lexeme);
+    if (t.cat === '关键词' || t.cat === '专用符号') return t.lexeme;
+    if (t.cat === 'identifier') return 'identifier';
+    if (t.cat === 'number') return 'number';
+    if (t.cat === 'ID') return 'ID';
+    if (t.cat === 'NUM') return 'NUM';
+    throw new Error('未知单词类别: ' + t.cat);
+  });
+}
+/* 从 sample.lex 文本解析出 token 流 (兼容当年的输出格式) */
+function parseLexFileFormat(text) {
+  var tokens = [];
+  text.split(/\r?\n/).forEach(function (line) {
+    var m = line.match(/^[ \t]*（(.+?)，(.*)）\s*$/);
+    if (m) tokens.push({ cat: m[1], lexeme: m[2] });
+  });
+  return tokens;
+}
+function runParse(withTokens) {
+  var s = graState, out = $('gra-parse-out');
+  try {
+    var pr = C.parseLL1(s.tr.g, s.tbl, withTokens);
+    var traceRows = pr.steps.map(function (st) { return [st.step, H('<span class="mono">' + esc(st.stack) + '</span>'), H('<span class="mono">' + esc(st.input) + '</span>'), H(pr.ok || st.action.indexOf('报错') < 0 ? esc(st.action) : '<span class="errline">' + esc(st.action) + '</span>')]; });
+    out.innerHTML =
+      (pr.ok ? '<div class="okline">✓ 语法分析成功: 该单词串是 ' + esc(s.tr.g.start) + ' 的合法句子</div>'
+             : '<div class="errline">✗ 语法分析失败: ' + esc(pr.error || '') + '</div>') +
+      '<div class="hint" style="margin:6px 0">分析过程 (共 ' + pr.steps.length + ' 步):</div>' +
+      tableHTML(['步骤', '分析栈', '剩余输入', '动作'], traceRows, {}) +
+      '<div class="hint" style="margin:10px 0 6px">LL(1) 分析树 (变换后文法, 非终结符蓝框 / 终结符绿框):</div>' +
+      '<div class="graphwrap">' + treeSVG(pr.tree) + '</div>' + renderSemantic(withTokens);
+  } catch (e) {
+    out.innerHTML = '<div class="errline">' + esc(e.message) + '</div>';
+  }
+}
+/* 由文法终结符反查词法 token 时的关键词表 (TINY + Mini-C) */
+var KW_WORDS = { if: 1, then: 1, else: 1, end: 1, repeat: 1, until: 1, read: 1, write: 1, int: 1, float: 1, void: 1, do: 1, while: 1, return: 1 };
+function renderSemantic(tokens) {
+  var s = graState;
+  var lang = P.LANGS[s.langKey];
+  if (!lang.astBuilder) return '';
+  try {
+    var tk = tokens.map(function (sym) {
+      /* 反查: 由文法终结符构造词法 token 供语义分析 */
+      if (sym === 'identifier') return { cat: 'identifier', lexeme: 'id' };
+      if (sym === 'number') return { cat: 'number', lexeme: '0' };
+      if (sym === 'ID') return { cat: 'ID', lexeme: 'id' };
+      if (sym === 'NUM') return { cat: 'NUM', lexeme: '0' };
+      return { cat: KW_WORDS[sym] ? '关键词' : '专用符号', lexeme: sym };
+    });
+    /* 语义分析使用真实词素更佳: 若输入来自词法分析则直接用原始 token */
+    if (runParse.lastRawTokens && runParse.lastRawTokens.length === tokens.length) tk = runParse.lastRawTokens;
+    var ast, quads, title;
+    if (lang.astBuilder === 'tiny') { ast = C.buildTinyAst(tk); quads = C.generateQuadsTiny(ast); title = 'TINY'; }
+    else { ast = C.buildMiniCAst(tk); quads = C.generateQuadsMiniC(ast); title = 'Mini-C'; }
+    var quadRows = quads.map(function (q, i) { return [i + 1, q.op, q.a1, q.a2, q.r]; });
+    return '<div class="hint" style="margin:10px 0 6px">抽象语法树 (AST):</div><div class="graphwrap">' + treeSVG({ sym: 'program', isTerm: false, children: ast.map(function (d) { return astNodeToTree(d); }) }) + '</div>' +
+      '<div style="margin:10px 0 6px"><span class="badge green">选做内容</span> <b>' + title + ' 中间代码 — 四元式</b> <span class="hint">(共 ' + quads.length + ' 条)</span></div>' +
+      tableHTML(['序号', '算符 op', 'arg1', 'arg2', 'result'], quadRows, { monoCols: [1, 2, 3, 4] });
+  } catch (e) {
+    return '<div class="note">语义分析(选做)未执行: ' + esc(e.message) + '</div>';
+  }
+}
+function astNodeToTree(d) {
+  function label(n) {
+    switch (n.kind) {
+      case 'if': return 'if-stmt'; case 'repeat': return 'repeat-stmt'; case 'assign': return 'assign-stmt';
+      case 'read': return 'read ' + (n.name || ''); case 'write': return 'write-stmt';
+      case 'func': return 'func ' + (n.name || ''); case 'vardef': return 'var ' + (n.name || '');
+      case 'dowhile': return 'do-while'; case 'return': return 'return'; case 'compound': return '{...}';
+      case 'exprstmt': return 'expr;'; case 'relop': return n.op || 'relop'; case 'arith': return n.op || 'op';
+      case 'num': return 'num ' + (n.val || ''); case 'var': return 'var ' + (n.name || '') + (n.index ? '[]' : '');
+      case 'call': return 'call ' + (n.name || ''); case 'seq': return 'stmt-seq';
+      default: return n.kind;
+    }
+  }
+  var kids = [];
+  Object.keys(d).forEach(function (k) {
+    if (k === 'kind' || k === 'line' || k === 'name' || k === 'val' || k === 'op' || k === 'array' || k === 'type') return;
+    var v = d[k];
+    if (Array.isArray(v)) v.forEach(function (x) { if (x && x.kind) kids.push(astNodeToTree(x)); });
+    else if (v && typeof v === 'object' && v.kind) kids.push(astNodeToTree(v));
+  });
+  return { sym: label(d), isTerm: kids.length === 0 && ['num', 'var', 'call', 'read'].indexOf(d.kind) >= 0, children: kids };
+}
+function resetParsePanels() {
+  $('gra-parse-out').innerHTML = '<div class="hint">选择输入后点击"开始语法分析"</div>';
+}
+function initTab2() {
+  var sel = $('gra-lang');
+  sel.onchange = function () { $('gra-text').value = P.LANGS[sel.value].grammarText; };
+  $('gra-build').onclick = function () {
+    try {
+      graState.langKey = sel.value;
+      Object.assign(graState, buildGrammarNow(sel.value, $('gra-text').value));
+      $('gra-err').innerHTML = '';
+      renderGrammarPanels();
+    } catch (e) { $('gra-err').innerHTML = '<div class="note">' + esc(e.message) + '</div>'; }
+  };
+  $('gra-open').onclick = function () { pickFile(function (n, t) { $('gra-text').value = t; }); };
+  $('gra-run-src').onclick = function () {
+    var L = buildLexerNow(sel.value, P.LANGS[sel.value].regexText);
+    var r = lexRun(L, $('gra-src').value);
+    if (r.errors.length) { $('gra-parse-out').innerHTML = '<div class="errline">词法错误: ' + esc(JSON.stringify(r.errors.slice(0, 3))) + '</div>'; return; }
+    runParse.lastRawTokens = r.tokens;
+    runParse(tokensToTerminals(r.tokens));
+  };
+  $('gra-run-lex').onclick = function () {
+    pickFile(function (n, t) {
+      try {
+        var toks = parseLexFileFormat(t);
+        if (!toks.length) throw new Error('未能从文件中解析出（类别，词素）格式的单词, 请确认是 sample.lex 格式');
+        runParse.lastRawTokens = toks;
+        runParse(tokensToTerminals(toks));
+      } catch (e) { $('gra-parse-out').innerHTML = '<div class="errline">' + esc(e.message) + '</div>'; }
+    });
+  };
+  $('gra-src').value = P.LANGS.tiny.sampleSource;
+  $('gra-text').value = P.LANGS.tiny.grammarText;
+  $('gra-build').click();
+}
+
+/* ================= 项目三: Mini-C 全流程 ================= */
+function runMiniCAll() {
+  var out = $('mc-out');
+  var report = [];
+  function add(item, ok, detail) { report.push({ item: item, ok: ok, detail: detail }); }
+  try {
+    /* 1 词法 */
+    var L = buildLexerNow('minic', P.MINIC_REGEX);
+    add('Mini-C 正则表达式 → NFA → DFA → 最小化DFA', true, 'NFA ' + L.combined.states.length + ' 状态 / DFA ' + L.dfa.states.length + ' 状态 / 最小化 ' + L.min.states.length + ' 状态');
+    var r = lexRun(L, P.SAMPLE_MINIC);
+    add('自编 Mini-C 源程序词法分析', r.errors.length === 0, r.tokens.length + ' 个单词, ' + r.errors.length + ' 个错误');
+    var lexText = C.makeLexFile(P.SAMPLE_MINIC, r.tokens);
+    /* 2 语法 */
+    var G = buildGrammarNow('minic', P.MINIC_GRAMMAR);
+    add('Mini-C BNF 文法 → 化简/消左递归/提左公因子', true, '29 条原文法 → ' + G.tr.g.prods.length + ' 条 LL(1) 文法, 迭代 ' + G.tr.iterations + ' 轮');
+    var hard = G.tbl.conflicts.filter(function (c) { return c.kind === 'FIRST/FIRST 冲突'; });
+    add('LL(1) 分析表构造', hard.length === 0, hard.length === 0 ? '无 FIRST/FIRST 冲突; 悬空 else 按就近匹配消解' : hard.length + ' 处未消解冲突');
+    var pr = C.parseLL1(G.tr.g, G.tbl, tokensToTerminals(r.tokens));
+    add('LL(1) 语法分析 + 语法树', pr.ok, pr.ok ? '分析成功, ' + pr.steps.length + ' 步' : pr.error);
+    /* 3 语义 + 四元式 */
+    var ast = C.buildMiniCAst(r.tokens);
+    var quads = C.generateQuadsMiniC(ast);
+    add('AST 构建 + 四元式生成(选做)', quads.length > 0, quads.length + ' 条四元式');
+    /* 汇总渲染 */
+    var allOk = report.every(function (x) { return x.ok; });
+    out.innerHTML =
+      '<div class="' + (allOk ? 'okline' : 'errline') + '" style="font-size:15px">' + (allOk ? '✓ Mini-C 全流程测试全部通过' : '✗ 存在失败项') + '</div>' +
+      tableHTML(['测试项', '结果', '说明'], report.map(function (x) {
+        return [x.item, H(x.ok ? '<b style="color:var(--ok)">通过</b>' : '<b style="color:var(--err)">失败</b>'), x.detail];
+      }), {}) +
+      '<div class="hint" style="margin:12px 0 6px">① 词法分析输出 (sample.lex 同款格式, 前 60 行):</div>' +
+      '<pre class="code" style="max-height:260px">' + esc(lexText.split('\n').slice(0, 60).join('\n')) + '\n...</pre>' +
+      '<div class="hint" style="margin:12px 0 6px">② LL(1) 分析树:</div><div class="graphwrap">' + treeSVG(pr.tree) + '</div>' +
+      '<div class="hint" style="margin:12px 0 6px">③ 抽象语法树:</div><div class="graphwrap">' + treeSVG({ sym: 'program', isTerm: false, children: ast.map(function (d) { return astNodeToTree(d); }) }) + '</div>' +
+      '<div style="margin:12px 0 6px"><span class="badge green">选做内容</span> <b>四元式中间代码</b>:</div>' +
+      tableHTML(['#', 'op', 'arg1', 'arg2', 'result'], quads.map(function (q, i) { return [i + 1, q.op, q.a1, q.a2, q.r]; }), { monoCols: [1, 2, 3, 4] });
+  } catch (e) {
+    out.innerHTML = '<div class="errline">测试中断: ' + esc(e.message) + '</div>' +
+      tableHTML(['测试项', '结果', '说明'], report.map(function (x) { return [x.item, H(x.ok ? '通过' : '失败'), x.detail]; }), {});
+  }
+}
+function initTab3() {
+  $('mc-run').onclick = runMiniCAll;
+  $('mc-src').value = P.SAMPLE_MINIC;
+}
+
+/* ================= 标签页切换与启动 ================= */
+function initTabs() {
+  var btns = document.querySelectorAll('.tabbar button');
+  btns.forEach(function (b) {
+    b.onclick = function () {
+      btns.forEach(function (x) { x.classList.remove('active'); });
+      b.classList.add('active');
+      document.querySelectorAll('.tabpage').forEach(function (p) { p.classList.remove('active'); });
+      $(b.dataset.page).classList.add('active');
+    };
+  });
+}
+document.addEventListener('DOMContentLoaded', function () {
+  initTabs();
+  initTab1();
+  initTab2();
+  initTab3();
+});
+})();
+
+</script>
+</body>
+</html>

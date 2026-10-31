@@ -1,0 +1,93 @@
+/* 编译原理课程项目 · 满分重制版 — 样式 (浅色主题) */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #f4f6f9; --card: #ffffff; --border: #e2e7ee; --text: #1a2233; --sub: #5b6575;
+  --accent: #2563eb; --accent-weak: #e8effd; --ok: #16a34a; --ok-weak: #e8f7ee;
+  --warn: #b45309; --warn-weak: #fdf3e3; --err: #dc2626; --err-weak: #fdeaea;
+  --code-bg: #f7f9fc; --mono: 'Cascadia Mono', Consolas, 'Courier New', monospace;
+}
+html, body { background: var(--bg); color: var(--text); font: 14px/1.65 'Segoe UI', 'Microsoft YaHei', sans-serif; }
+.container { max-width: 1280px; margin: 0 auto; padding: 18px 22px 80px; }
+
+/* 头部 */
+header.hero { padding: 22px 0 14px; }
+header.hero h1 { font-size: 22px; font-weight: 700; }
+header.hero h1 .badge { vertical-align: 3px; margin-left: 10px; }
+header.hero p { color: var(--sub); margin-top: 4px; }
+.badge { display: inline-block; font-size: 12px; padding: 1px 9px; border-radius: 20px; background: var(--accent-weak); color: var(--accent); font-weight: 600; }
+.badge.green { background: var(--ok-weak); color: var(--ok); }
+.badge.amber { background: var(--warn-weak); color: var(--warn); }
+.badge.red { background: var(--err-weak); color: var(--err); }
+.badge.gray { background: #eceff3; color: var(--sub); }
+
+/* 标签页 */
+.tabbar { display: flex; gap: 8px; margin: 14px 0 20px; flex-wrap: wrap; }
+.tabbar button {
+  border: 1px solid var(--border); background: var(--card); color: var(--sub);
+  padding: 9px 18px; border-radius: 10px; cursor: pointer; font-size: 14px; font-weight: 600;
+}
+.tabbar button.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+.tabpage { display: none; }
+.tabpage.active { display: block; }
+
+/* 步骤卡片 */
+.step { background: var(--card); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 16px; overflow: hidden; }
+.step-head { display: flex; align-items: center; gap: 10px; padding: 11px 16px; border-bottom: 1px solid var(--border); background: #fafbfd; }
+.step-head .no { width: 24px; height: 24px; border-radius: 50%; background: var(--accent); color: #fff; font-size: 13px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; flex: none; }
+.step-head h3 { font-size: 15px; }
+.step-head .why { color: var(--sub); font-size: 12.5px; margin-left: auto; text-align: right; max-width: 55%; }
+.step-body { padding: 14px 16px; }
+.step-body.collapsed { display: none; }
+
+/* 控制条 */
+.controls { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 14px; background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; }
+.controls label { color: var(--sub); font-size: 13px; }
+select, textarea {
+  border: 1px solid var(--border); border-radius: 8px; padding: 6px 10px; font: inherit; color: var(--text); background: #fff;
+}
+textarea { width: 100%; font-family: var(--mono); font-size: 13px; line-height: 1.55; }
+button.btn {
+  border: 1px solid var(--border); background: #fff; color: var(--text); border-radius: 8px;
+  padding: 7px 14px; cursor: pointer; font-size: 13.5px; font-weight: 600;
+}
+button.btn:hover { border-color: var(--accent); color: var(--accent); }
+button.btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+button.btn.primary:hover { opacity: .92; color: #fff; }
+button.btn.small { padding: 3px 10px; font-size: 12.5px; }
+.hint { color: var(--sub); font-size: 12.5px; }
+
+/* 表格 */
+.tablewrap { overflow: auto; border: 1px solid var(--border); border-radius: 8px; max-height: 480px; }
+table.data { border-collapse: collapse; font-size: 12.5px; width: max-content; min-width: 100%; }
+table.data th, table.data td { border: 1px solid #e8ecf2; padding: 4px 9px; text-align: left; white-space: nowrap; }
+table.data th { background: #f1f4f9; position: sticky; top: 0; z-index: 2; font-weight: 600; color: #3b4657; }
+table.data tr:nth-child(even) td { background: #fafbfd; }
+table.data td.acc { background: var(--ok-weak) !important; font-weight: 600; }
+table.data td.err-cell { background: var(--err-weak) !important; color: var(--err); }
+table.data td.mono, table.data th.mono { font-family: var(--mono); }
+table.data td.empty { color: #c3cad4; text-align: center; }
+caption.cap { caption-side: top; text-align: left; font-weight: 600; padding: 2px 2px 8px; color: var(--text); }
+
+/* 代码块 */
+pre.code {
+  background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px;
+  padding: 12px 14px; overflow: auto; max-height: 460px;
+  font-family: var(--mono); font-size: 12.3px; line-height: 1.55; color: #243044;
+}
+pre.lexfile { font-family: var(--mono); font-size: 12.5px; white-space: pre; }
+
+/* 语法树 / 自动机图 */
+.graphwrap { overflow: auto; border: 1px solid var(--border); border-radius: 8px; background: #fcfdff; padding: 6px; }
+svg text { font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif; }
+
+/* 分析结果 */
+.stat-row { display: flex; gap: 10px; flex-wrap: wrap; margin: 8px 0; }
+.stat { background: #f7f9fc; border: 1px solid var(--border); border-radius: 8px; padding: 6px 12px; font-size: 12.5px; color: var(--sub); }
+.stat b { color: var(--text); font-size: 14px; margin-left: 4px; }
+.okline { color: var(--ok); font-weight: 600; }
+.errline { color: var(--err); font-weight: 600; }
+.note { background: var(--warn-weak); border: 1px solid #f3dfba; color: var(--warn); border-radius: 8px; padding: 8px 12px; font-size: 12.8px; margin: 8px 0; }
+.note.blue { background: var(--accent-weak); border-color: #cdddf8; color: var(--accent); }
+.conflict-cell { background: var(--warn-weak) !important; }
+
+footer { margin-top: 40px; color: var(--sub); font-size: 12.5px; text-align: center; }
